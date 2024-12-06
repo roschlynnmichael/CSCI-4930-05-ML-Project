@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center space-x-4">
+            <lottie-player
+                src="{{ url_for('static', filename='animations/welcome.json') }}"
+                background="transparent"
+                speed="1"
+                style="width: 64px; height: 64px;"
+                loop
+                autoplay>
+            </lottie-player>
+            <h1 class="text-3xl font-bold">Welcome Back!</h1>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <!-- Dashboard Card -->
+            <div class="bg-indigo-50 p-6 rounded-lg">
+                <lottie-player
+                    src="{{ url_for('static', filename='animations/logo.json') }}"
+                    background="transparent"
+                    speed="1"
+                    style="width: 48px; height: 48px;"
+                    loop
+                    autoplay>
+                </lottie-player>
+                <h3 class="text-xl font-semibold mt-4">Statistics</h3>
+                <p class="text-gray-600 mt-2">View your activity stats</p>
+            </div>
+            
+            <!-- Add more cards as needed -->
+        </div>
+    </div>
+</div>
+{% endblock %}

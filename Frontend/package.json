@@ -1,0 +1,13 @@
+{
+  "name": "your-project",
+  "version": "1.0.0",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/main.css -o ./static/css/tailwind.css --minify"
+  },
+  "dependencies": {
+    "@lottiefiles/lottie-player": "^1.7.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.3.0"
+  }
+} 

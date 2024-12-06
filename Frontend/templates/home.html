@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="text-center">
+        <lottie-player
+            src="{{ url_for('static', filename='animations/welcome.json') }}"
+            background="transparent"
+            speed="1"
+            style="width: 300px; height: 300px; margin: 0 auto;"
+            loop
+            autoplay>
+        </lottie-player>
+        
+        <h1 class="text-4xl font-bold text-gray-900 mt-8">Welcome to Your Brand</h1>
+        <p class="mt-4 text-xl text-gray-600">Your awesome tagline goes here</p>
+        
+        <div class="mt-8 space-x-4">
+            <a href="{{ url_for('login') }}" class="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                Get Started
+            </a>
+            <a href="{{ url_for('about') }}" class="px-8 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                Learn More
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
