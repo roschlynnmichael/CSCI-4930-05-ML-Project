@@ -1,0 +1,2 @@
+2024-12-07 03:18:56,817 - ERROR - Error loading model career_phase_model.joblib: [Errno 2] No such file or directory: 'app\\model\\career_phase_model.joblib'
+2024-12-07 03:21:07,313 - ERROR - Error loading model career_phase_model.joblib: [Errno 2] No such file or directory: 'D:\\Projects\\Machine Learning Applications for Soccer\\model_creation\\Backend\\tests\\career_phase_model.joblib'

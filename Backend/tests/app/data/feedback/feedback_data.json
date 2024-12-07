@@ -1,0 +1,993 @@
+{
+    "recommendations": {
+        "REC_20241207_0": {
+            "timestamp": "2024-12-07T01:47:24.802519",
+            "player_id": "Paulo Johnson",
+            "recommendation_type": "rotation",
+            "actual_outcome": {
+                "player_id": "Paulo Johnson",
+                "type": "rotation",
+                "performance_improvement": 0.8911712122815584,
+                "team_impact": 1.1794478839479434,
+                "financial_outcome": 1.0584025608338163
+            },
+            "success_metrics": {
+                "performance_improvement": 1.0,
+                "team_impact": 1.0,
+                "financial_outcome": 1.0
+            },
+            "success_score": 0.96
+        },
+        "REC_20241207_1": {
+            "timestamp": "2024-12-07T01:47:24.804516",
+            "player_id": "Carlos Martinez",
+            "recommendation_type": "transfer",
+            "actual_outcome": {
+                "player_id": "Carlos Martinez",
+                "type": "transfer",
+                "performance_improvement": 1.0038884651586235,
+                "team_impact": 1.1015436596721018,
+                "financial_outcome": 0.9613251938123302
+            },
+            "success_metrics": {
+                "performance_improvement": 1.0,
+                "team_impact": 1.0,
+                "financial_outcome": 1.0
+            },
+            "success_score": 0.99
+        },
+        "REC_20241207_2": {
+            "timestamp": "2024-12-07T01:47:24.806518",
+            "player_id": "Marco Taylor",
+            "recommendation_type": "rotation",
+            "actual_outcome": {
+                "player_id": "Marco Taylor",
+                "type": "rotation",
+                "performance_improvement": 1.0661278951943098,
+                "team_impact": 1.102762819737289,
+                "financial_outcome": 0.9905869407706132
+            },
+            "success_metrics": {
+                "performance_improvement": 1.0,
+                "team_impact": 1.0,
+                "financial_outcome": 1.0
+            },
+            "success_score": 1.0
+        }
+    },
+    "phase_predictions": {
+        "David Johnson": [
+            {
+                "timestamp": "2024-12-07T01:46:18.563680",
+                "predicted_phase": "breakthrough",
+                "actual_phase": "development",
+                "performance_metrics": {
+                    "games_played": 442,
+                    "goals_per_game": 0.16515837104072398,
+                    "minutes_per_game": 81.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Kevin Williams": [
+            {
+                "timestamp": "2024-12-07T01:46:18.564705",
+                "predicted_phase": "breakthrough",
+                "actual_phase": "breakthrough",
+                "performance_metrics": {
+                    "games_played": 203,
+                    "goals_per_game": 0.18719211822660098,
+                    "minutes_per_game": 83.0
+                },
+                "prediction_accuracy": 1
+            }
+        ],
+        "James Davies": [
+            {
+                "timestamp": "2024-12-07T01:46:18.565676",
+                "predicted_phase": "development",
+                "actual_phase": "development",
+                "performance_metrics": {
+                    "games_played": 494,
+                    "goals_per_game": 0.10369348852901485,
+                    "minutes_per_game": 67.0
+                },
+                "prediction_accuracy": 1
+            }
+        ],
+        "David Davies": [
+            {
+                "timestamp": "2024-12-07T01:46:18.566432",
+                "predicted_phase": "breakthrough",
+                "actual_phase": "breakthrough",
+                "performance_metrics": {
+                    "games_played": 351,
+                    "goals_per_game": 0.3190883190883191,
+                    "minutes_per_game": 78.0
+                },
+                "prediction_accuracy": 1
+            }
+        ],
+        "Lucas Johnson": [
+            {
+                "timestamp": "2024-12-07T01:46:18.566432",
+                "predicted_phase": "breakthrough",
+                "actual_phase": "breakthrough",
+                "performance_metrics": {
+                    "games_played": 434,
+                    "goals_per_game": 0.47235023041474655,
+                    "minutes_per_game": 68.0
+                },
+                "prediction_accuracy": 1
+            }
+        ],
+        "Paulo Johnson": [
+            {
+                "timestamp": "2024-12-07T01:47:24.793490",
+                "predicted_phase": "breakthrough",
+                "actual_phase": "twilight",
+                "performance_metrics": {
+                    "games_played": 320,
+                    "goals_per_game": 0.371875,
+                    "minutes_per_game": 64.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Carlos Martinez": [
+            {
+                "timestamp": "2024-12-07T01:47:24.795491",
+                "predicted_phase": "twilight",
+                "actual_phase": "twilight",
+                "performance_metrics": {
+                    "games_played": 390,
+                    "goals_per_game": 0.1,
+                    "minutes_per_game": 84.0
+                },
+                "prediction_accuracy": 1
+            }
+        ],
+        "Marco Taylor": [
+            {
+                "timestamp": "2024-12-07T01:47:24.796996",
+                "predicted_phase": "breakthrough",
+                "actual_phase": "breakthrough",
+                "performance_metrics": {
+                    "games_played": 196,
+                    "goals_per_game": 0.1989795918367347,
+                    "minutes_per_game": 76.0
+                },
+                "prediction_accuracy": 1
+            }
+        ],
+        "Luis Taylor": [
+            {
+                "timestamp": "2024-12-07T01:47:24.799003",
+                "predicted_phase": "breakthrough",
+                "actual_phase": "breakthrough",
+                "performance_metrics": {
+                    "games_played": 78,
+                    "goals_per_game": 0.21794871794871795,
+                    "minutes_per_game": 78.0
+                },
+                "prediction_accuracy": 1
+            }
+        ],
+        "Carlos Rodriguez": [
+            {
+                "timestamp": "2024-12-07T01:47:24.800003",
+                "predicted_phase": "breakthrough",
+                "actual_phase": "breakthrough",
+                "performance_metrics": {
+                    "games_played": 312,
+                    "goals_per_game": 0.2724358974358974,
+                    "minutes_per_game": 60.0
+                },
+                "prediction_accuracy": 1
+            }
+        ],
+        "Player1": [
+            {
+                "timestamp": "2024-12-07T01:57:36.593085",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 15,
+                    "goals_per_game": 0.3333333333333333,
+                    "minutes_per_game": 67.16666666666667
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T01:58:54.050904",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 15,
+                    "goals_per_game": 0.3333333333333333,
+                    "minutes_per_game": 66.66666666666667
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T02:00:32.389287",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 20,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:28:00.747676",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 50,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:28:56.512063",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 50,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:29:58.151336",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 50,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:30:41.840327",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 50,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player2": [
+            {
+                "timestamp": "2024-12-07T01:57:36.594588",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 60,
+                    "goals_per_game": 0.3333333333333333,
+                    "minutes_per_game": 83.33333333333333
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T01:58:54.051884",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 18,
+                    "goals_per_game": 0.3333333333333333,
+                    "minutes_per_game": 66.66666666666667
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T02:00:32.391284",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 25,
+                    "goals_per_game": 0.2810857142857143,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:28:00.750691",
+                "predicted_phase": "development",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 100,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:28:56.514061",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 55,
+                    "goals_per_game": 0.29118181818181815,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:29:58.154337",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 55,
+                    "goals_per_game": 0.29118181818181815,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:30:41.843327",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 55,
+                    "goals_per_game": 0.29118181818181815,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player3": [
+            {
+                "timestamp": "2024-12-07T01:57:36.596595",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 180,
+                    "goals_per_game": 0.3333333333333333,
+                    "minutes_per_game": 83.33333333333333
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T01:58:54.052902",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 60,
+                    "goals_per_game": 0.3333333333333333,
+                    "minutes_per_game": 83.33333333333333
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T02:00:32.392284",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 30,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:28:00.752716",
+                "predicted_phase": "peak",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 200,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:28:56.516572",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 200,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:29:58.156882",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 200,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:30:41.845327",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 200,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player4": [
+            {
+                "timestamp": "2024-12-07T01:57:36.597595",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 300,
+                    "goals_per_game": 0.3333333333333333,
+                    "minutes_per_game": 83.33333333333333
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T01:58:54.054440",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 65,
+                    "goals_per_game": 0.3384615384615385,
+                    "minutes_per_game": 84.61538461538461
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T02:00:32.394798",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 35,
+                    "goals_per_game": 0.2857142857142857,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:28:00.754717",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 300,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:28:56.519577",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 210,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:29:58.159882",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 210,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:30:41.848621",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 210,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player5": [
+            {
+                "timestamp": "2024-12-07T01:58:54.055472",
+                "predicted_phase": "peak",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 180,
+                    "goals_per_game": 0.3333333333333333,
+                    "minutes_per_game": 83.33333333333333
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T02:00:32.396798",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 50,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player6": [
+            {
+                "timestamp": "2024-12-07T01:58:54.056474",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 185,
+                    "goals_per_game": 0.33513513513513515,
+                    "minutes_per_game": 86.48648648648648
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T02:00:32.398799",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 60,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player7": [
+            {
+                "timestamp": "2024-12-07T01:58:54.058472",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 200,
+                    "goals_per_game": 0.34943749999999996,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T02:00:32.399798",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 65,
+                    "goals_per_game": 0.2923076923076923,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player8": [
+            {
+                "timestamp": "2024-12-07T01:58:54.059472",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 220,
+                    "goals_per_game": 0.3409090909090909,
+                    "minutes_per_game": 90.82727272727273
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T02:00:32.401796",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 70,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player9": [
+            {
+                "timestamp": "2024-12-07T01:58:54.060474",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 300,
+                    "goals_per_game": 0.3333333333333333,
+                    "minutes_per_game": 83.33333333333333
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T02:00:32.405314",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 75,
+                    "goals_per_game": 0.29333333333333333,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player10": [
+            {
+                "timestamp": "2024-12-07T01:58:54.062473",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 320,
+                    "goals_per_game": 0.34375,
+                    "minutes_per_game": 87.5
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T02:00:32.407319",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 80,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player11": [
+            {
+                "timestamp": "2024-12-07T02:00:32.409345",
+                "predicted_phase": "breakthrough",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 120,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player12": [
+            {
+                "timestamp": "2024-12-07T02:00:32.410344",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 140,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player13": [
+            {
+                "timestamp": "2024-12-07T02:00:32.412351",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 150,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player14": [
+            {
+                "timestamp": "2024-12-07T02:00:32.414863",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 160,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player15": [
+            {
+                "timestamp": "2024-12-07T02:00:32.416896",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 170,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player16": [
+            {
+                "timestamp": "2024-12-07T02:00:32.418897",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 180,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player17": [
+            {
+                "timestamp": "2024-12-07T02:00:32.420894",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 190,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player18": [
+            {
+                "timestamp": "2024-12-07T02:00:32.422895",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 250,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player19": [
+            {
+                "timestamp": "2024-12-07T02:00:32.425103",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 280,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Player20": [
+            {
+                "timestamp": "2024-12-07T02:00:32.427133",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 300,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Test Player": [
+            {
+                "timestamp": "2024-12-07T03:21:40.269726",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 80,
+                    "goals_per_game": 0.3125,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:21:40.298494",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 80,
+                    "goals_per_game": 0.3125,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:22:41.499386",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 80,
+                    "goals_per_game": 0.3125,
+                    "minutes_per_game": 85.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Available3": [
+            {
+                "timestamp": "2024-12-07T03:31:39.307324",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 180,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.425504",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 180,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.539439",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 180,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.653065",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 180,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.767388",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 180,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Available2": [
+            {
+                "timestamp": "2024-12-07T03:31:39.346878",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 110,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.462066",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 110,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.575887",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 110,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.688922",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 110,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.803833",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 110,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            }
+        ],
+        "Available5": [
+            {
+                "timestamp": "2024-12-07T03:31:39.383743",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 320,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.495338",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 320,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.610843",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 320,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.723600",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 320,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            },
+            {
+                "timestamp": "2024-12-07T03:31:39.839237",
+                "predicted_phase": "twilight",
+                "actual_phase": null,
+                "performance_metrics": {
+                    "games_played": 320,
+                    "goals_per_game": 0.3,
+                    "minutes_per_game": 90.0
+                },
+                "prediction_accuracy": 0
+            }
+        ]
+    },
+    "performance_predictions": {},
+    "team_balance_suggestions": {},
+    "metadata": {
+        "created_at": "2024-12-07T01:46:18.443607",
+        "last_updated": "2024-12-07T03:31:39.839237",
+        "total_feedback_entries": 84
+    }
+}

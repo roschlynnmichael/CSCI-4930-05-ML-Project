@@ -1,0 +1,19 @@
+2024-12-07 01:58:54,064 - WARNING - Player age 22 predicted as breakthrough but age suggests development
+2024-12-07 01:58:54,064 - WARNING - Player age 23 predicted as twilight but age suggests development
+2024-12-07 01:58:54,065 - WARNING - Player age 26 predicted as breakthrough but age suggests peak
+2024-12-07 01:58:54,065 - WARNING - Player age 27 predicted as breakthrough but age suggests peak
+2024-12-07 01:58:54,065 - WARNING - Player age 28 predicted as breakthrough but age suggests peak
+2024-12-07 01:58:54,065 - WARNING - Player age 31 predicted as breakthrough but age suggests twilight
+2024-12-07 02:00:32,430 - WARNING - Adjusting phase for player age 21: breakthrough -> development
+2024-12-07 02:00:32,430 - WARNING - Adjusting phase for player age 22: breakthrough -> development
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 22: breakthrough -> development
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 23: breakthrough -> development
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 23: breakthrough -> development
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 24: breakthrough -> development
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 25: breakthrough -> peak
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 26: twilight -> peak
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 26: twilight -> peak
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 27: twilight -> peak
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 27: twilight -> peak
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 28: twilight -> peak
+2024-12-07 02:00:32,436 - WARNING - Adjusting phase for player age 29: twilight -> peak

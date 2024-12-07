@@ -1,0 +1,8 @@
+2024-12-07 01:46:18,569 - INFO - Recorded feedback for recommendation REC_20241207_0
+2024-12-07 01:46:18,570 - INFO - Recorded feedback for recommendation REC_20241207_1
+2024-12-07 01:46:18,571 - INFO - Recorded feedback for recommendation REC_20241207_2
+2024-12-07 01:46:18,572 - ERROR - Error analyzing feedback trends: 'FeedbackSystem' object has no attribute '_calculate_recommendation_success_rate'
+2024-12-07 01:47:24,804 - INFO - Recorded feedback for recommendation REC_20241207_0
+2024-12-07 01:47:24,806 - INFO - Recorded feedback for recommendation REC_20241207_1
+2024-12-07 01:47:24,808 - INFO - Recorded feedback for recommendation REC_20241207_2
+2024-12-07 01:47:24,809 - INFO - Completed feedback trend analysis
