@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from fastapi.middleware.cors import CORSMiddleware
 from app.data.player_service import PlayerService
 from app.model.team_balance import TeamBalanceOptimizer
+from app.scraper import PlayerScraper
 from typing import Dict, List
 import pandas as pd
 import logging
@@ -25,6 +26,7 @@ app.add_middleware(
 
 player_service = PlayerService()
 team_balance_optimizer = TeamBalanceOptimizer()
+scraper = PlayerScraper()
 
 @app.get("/api/search-player")
 async def search_player(name: str):
@@ -44,9 +46,15 @@ async def get_player_details(player_id: str):
     """Get detailed information for a specific player"""
     logger.info(f"Getting details for player ID: {player_id}")
     try:
-        details = await player_service.get_player_details(player_id)
+        # Try Apify first
+        details = await scraper.get_player_details_apify(player_id)
+        if not details:
+            # Fallback to direct scraping if Apify fails
+            details = await scraper.get_player_details_direct(player_id)
+        
         if not details:
             raise HTTPException(status_code=404, detail="Player not found")
+            
         return details
     except Exception as e:
         logger.error(f"Error in get_player_details: {str(e)}")
