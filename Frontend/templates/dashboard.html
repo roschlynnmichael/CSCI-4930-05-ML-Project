@@ -32,7 +32,7 @@
                 <p class="text-gray-600 mt-2">View your activity stats</p>
             </div>
             
-            <!-- Add more cards as needed -->
+            <!-- Player Database Card -->
             <div class="bg-indigo-50 p-6 rounded-lg">
                 <lottie-player
                     src="{{ url_for('static', filename='animations/search.json') }}"
@@ -46,6 +46,23 @@
                 <p class="text-gray-600 mt-2">Search and analyze players</p>
                 <a href="{{ url_for('player_database') }}" class="btn-primary mt-4">
                     Open Database
+                </a>
+            </div>
+
+            <!-- Team Balance Card -->
+            <div class="bg-indigo-50 p-6 rounded-lg">
+                <lottie-player
+                    src="{{ url_for('static', filename='animations/balance.json') }}"
+                    background="transparent"
+                    speed="1"
+                    style="width: 48px; height: 48px;"
+                    loop
+                    autoplay>
+                </lottie-player>
+                <h3 class="text-xl font-semibold mt-4">Team Balance</h3>
+                <p class="text-gray-600 mt-2">Analyze squad composition and balance</p>
+                <a href="{{ url_for('team_balance') }}" class="btn-primary mt-4">
+                    Analyze Team
                 </a>
             </div>
         </div>

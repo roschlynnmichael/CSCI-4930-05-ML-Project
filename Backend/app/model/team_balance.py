@@ -43,100 +43,99 @@ class TeamBalanceOptimizer:
         self.logger = logging.getLogger(__name__)
 
     def analyze_squad_balance(self, team_data: pd.DataFrame) -> Dict:
-        """
-        Main function to analyze squad balance
-        """
+        """Main function to analyze squad balance"""
         try:
-            # Get career phase predictions using ML model
-            ml_analysis = self.roster_analyzer.analyze_team(team_data)
-            
-            # Combine original data with ML predictions
+            # Prepare the data
             analysis_data = team_data.copy()
             
-            # Convert ml_analysis to DataFrame if it's not already
-            if isinstance(ml_analysis, dict):
-                ml_analysis = pd.DataFrame(ml_analysis)
-                
-            # Ensure Career_Phase is properly assigned
-            analysis_data['Career_Phase'] = ml_analysis['Career_Phase']
+            # Extract name and age
+            analysis_data['Name'] = team_data['name']
+            analysis_data['Age'] = pd.to_numeric(team_data['info'].apply(
+                lambda x: x.get('age', 0) if x else 0
+            ))
             
-            # Validate and adjust phase predictions based on age
-            analysis_data['Career_Phase'] = analysis_data.apply(
-                lambda row: self._validate_career_phase(row['Age'], row['Career_Phase']), 
-                axis=1
-            )
+            # Determine career phase based on age
+            analysis_data['Career_Phase'] = analysis_data['Age'].apply(self._determine_career_phase)
             
-            # Perform comprehensive analysis
-            balance_analysis = {
-                'squad_metrics': self._analyze_squad_metrics(analysis_data),
-                'age_analysis': self._analyze_age_distribution(analysis_data),
-                'phase_analysis': self._analyze_phase_distribution(analysis_data),
-                'balance_scores': self._calculate_balance_scores(analysis_data),
-            }
+            # Calculate basic squad metrics
+            squad_metrics = self._analyze_squad_metrics(analysis_data)
+            
+            # Analyze distributions
+            age_analysis = self._analyze_age_distribution(analysis_data)
+            phase_analysis = self._analyze_phase_distribution(analysis_data)
+            
+            # Calculate balance scores
+            balance_scores = self._calculate_balance_scores(analysis_data)
             
             # Generate recommendations
-            balance_analysis['recommendations'] = self._generate_recommendations(balance_analysis)
+            recommendations = self._generate_recommendations({
+                'squad_metrics': squad_metrics,
+                'age_analysis': age_analysis,
+                'phase_analysis': phase_analysis,
+                'balance_scores': balance_scores
+            })
             
-            return balance_analysis
-                
+            return {
+                'squad_metrics': squad_metrics,
+                'age_analysis': age_analysis,
+                'phase_analysis': phase_analysis,
+                'balance_scores': balance_scores,
+                'recommendations': recommendations
+            }
+            
         except Exception as e:
             self.logger.error(f"Error in squad balance analysis: {str(e)}")
             raise
 
-    def _validate_career_phase(self, age: float, predicted_phase: str) -> str:
-        """Validate and adjust career phase based on age"""
-        age_phase_mapping = {
-            (17, 20): 'breakthrough',
-            (21, 24): 'development',
-            (25, 29): 'peak',
-            (30, 40): 'twilight'
-        }
-        
-        # Find expected phase based on age
-        expected_phase = None
-        for (min_age, max_age), phase in age_phase_mapping.items():
-            if min_age <= age <= max_age:
-                expected_phase = phase
-                break
-        
-        # If prediction differs significantly from age expectation, use age-based phase
-        if predicted_phase != expected_phase:
-            self.logger.warning(
-                f"Adjusting phase for player age {age}: {predicted_phase} -> {expected_phase}"
-            )
-            return expected_phase
-        
-        return predicted_phase
+    def _determine_career_phase(self, age: float) -> str:
+        """Determine career phase based on age"""
+        if age < 21:
+            return 'breakthrough'
+        elif age < 24:
+            return 'development'
+        elif age < 30:
+            return 'peak'
+        else:
+            return 'twilight'
 
     def _analyze_squad_metrics(self, data: pd.DataFrame) -> Dict:
         """Analyze basic squad metrics"""
+        total_players = len(data)
+        average_age = data['Age'].mean()
+        age_spread = data['Age'].std()
+        
         return {
-            'total_players': len(data),
-            'average_age': round(data['Age'].mean(), 2),
-            'age_spread': round(data['Age'].std(), 2),
-            'squad_size_status': self._evaluate_squad_size(len(data))
+            'total_players': total_players,
+            'average_age': round(average_age, 1),
+            'age_spread': round(age_spread, 1),
+            'squad_size_status': self._evaluate_squad_size(total_players)
         }
 
     def _analyze_age_distribution(self, data: pd.DataFrame) -> Dict:
-        """Analyze age group distribution"""
-        total_players = len(data)
+        """Analyze age distribution"""
+        total = len(data)
+        if total == 0:
+            return {'current': {}, 'gaps': {}, 'balance_score': 0}
+        
         current_dist = {
-            'u21': len(data[data['Age'] < 21]) / total_players,
-            '21_25': len(data[(data['Age'] >= 21) & (data['Age'] < 26)]) / total_players,
-            '26_29': len(data[(data['Age'] >= 26) & (data['Age'] < 30)]) / total_players,
-            '30_plus': len(data[data['Age'] >= 30]) / total_players
+            'u21': len(data[data['Age'] < 21]) / total,
+            '21_25': len(data[(data['Age'] >= 21) & (data['Age'] <= 25)]) / total,
+            '26_29': len(data[(data['Age'] >= 26) & (data['Age'] <= 29)]) / total,
+            '30_plus': len(data[data['Age'] >= 30]) / total
         }
         
         gaps = {
-            group: self.ideal_composition['age_distribution'][group] - current_dist[group]
-            for group in current_dist
+            age_group: self.ideal_composition['age_distribution'][age_group] - current_dist[age_group]
+            for age_group in self.ideal_composition['age_distribution']
         }
         
         return {
             'current': current_dist,
             'gaps': gaps,
-            'balance_score': self._calculate_distribution_score(current_dist, 
-                                                             self.ideal_composition['age_distribution'])
+            'balance_score': self._calculate_distribution_score(
+                current_dist, 
+                self.ideal_composition['age_distribution']
+            )
         }
 
     def _analyze_phase_distribution(self, data: pd.DataFrame) -> Dict:

@@ -135,6 +135,11 @@ def get_player_details(player_id):
         
     except requests.RequestException as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/team-balance')
+@login_required
+def team_balance():
+    return render_template('team_balance.html')
 
 @app.route('/api/player-stats/<player_id>', methods=['GET'])
 @login_required

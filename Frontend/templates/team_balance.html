@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Team Balance Analyzer</h2>
+    
+    <!-- Team Selection/Input Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Select Team Players</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <input type="text" id="playerSearch" class="form-control" placeholder="Search for players...">
+                    </div>
+                    <div id="playerResults" class="mt-2"></div>
+                </div>
+                <div class="col-md-6">
+                    <h6>Selected Squad</h6>
+                    <div id="selectedPlayers" class="list-group"></div>
+                </div>
+            </div>
+            <button id="analyzeTeam" class="btn btn-primary mt-3">Analyze Team Balance</button>
+        </div>
+    </div>
+
+    <!-- Analysis Results Section -->
+    <div id="analysisResults" style="display: none;">
+        <div class="row">
+            <!-- Squad Metrics -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">Squad Metrics</div>
+                    <div class="card-body">
+                        <div id="squadMetrics"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Balance Scores -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">Balance Scores</div>
+                    <div class="card-body">
+                        <div id="balanceScores"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distributions -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">Age Distribution</div>
+                    <div class="card-body">
+                        <canvas id="ageChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">Career Phase Distribution</div>
+                    <div class="card-body">
+                        <canvas id="phaseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="card mb-4">
+            <div class="card-header">Recommendations</div>
+            <div class="card-body">
+                <div id="recommendations"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/team_balance.js') }}"></script>
+{% endblock %}
