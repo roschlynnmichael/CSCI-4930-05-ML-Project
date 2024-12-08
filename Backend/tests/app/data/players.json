@@ -1,0 +1,66 @@
+{
+  "123": {
+    "id": "123",
+    "Full name": "Test Player 1",
+    "Date of birth/Age": "1995-01-01 (28)",
+    "Position": "Forward",
+    "Market value": "\u20ac15.00m",
+    "careerStats": [
+      {
+        "Season": "2022/23",
+        "Appearances": "34",
+        "Goals": "15",
+        "Assists": "7",
+        "Minutes": "2890"
+      }
+    ]
+  },
+  "456": {
+    "id": "456",
+    "Full name": "Test Player 2",
+    "Date of birth/Age": "1999-01-01 (24)",
+    "Position": "Midfielder",
+    "Market value": "\u20ac25.00m",
+    "careerStats": [
+      {
+        "Season": "2022/23",
+        "Appearances": "30",
+        "Goals": "5",
+        "Assists": "12",
+        "Minutes": "2700"
+      }
+    ]
+  },
+  "789": {
+    "id": "789",
+    "Full name": "Test Player 3",
+    "Date of birth/Age": "2003-01-01 (20)",
+    "Position": "Defender",
+    "Market value": "\u20ac8.00m",
+    "careerStats": [
+      {
+        "Season": "2022/23",
+        "Appearances": "20",
+        "Goals": "1",
+        "Assists": "2",
+        "Minutes": "1800"
+      }
+    ]
+  },
+  "101": {
+    "id": "101",
+    "Full name": "Test Player 4",
+    "Date of birth/Age": "1990-01-01 (33)",
+    "Position": "Midfielder",
+    "Market value": "\u20ac5.00m",
+    "careerStats": [
+      {
+        "Season": "2022/23",
+        "Appearances": "25",
+        "Goals": "3",
+        "Assists": "4",
+        "Minutes": "2250"
+      }
+    ]
+  }
+}

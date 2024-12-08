@@ -11,3 +11,4 @@
 2024-12-07 03:30:41,904 - ERROR - Error generating recommendations: array length 1 does not match index length 2
 2024-12-07 03:31:39,260 - WARNING - Adjusting phase for player age 27: breakthrough -> peak
 2024-12-07 03:31:39,260 - WARNING - Adjusting phase for player age 28: breakthrough -> peak
+2024-12-08 11:48:17,402 - ERROR - Player data file not found

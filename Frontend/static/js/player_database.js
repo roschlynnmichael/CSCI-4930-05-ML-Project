@@ -161,7 +161,10 @@ class PlayerDatabase {
         
         // Get all career stats and info
         const careerStats = player.careerStats || [];
-        const mostRecentStats = careerStats[0] || {}; // Get most recent stats
+        const mostRecentStats = careerStats.length > 0 ? careerStats[0] : {};
+        
+        // Extract age from Date of birth/Age field
+        const age = this._extractAge(player['Date of birth/Age']);
         
         playerCard.innerHTML = `
             <div class="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -180,7 +183,7 @@ class PlayerDatabase {
                     <div class="grid grid-cols-2 gap-4 mb-8">
                         ${[
                             { label: 'Position', value: player['Position'] },
-                            { label: 'Age', value: player['Date of birth/Age'] },
+                            { label: 'Age', value: age ? `${age} years` : player['Date of birth/Age'] },
                             { label: 'Height', value: player['Height'] },
                             { label: 'Citizenship', value: player['Citizenship'] },
                             { label: 'Current Club', value: player['Current club'] },
@@ -200,22 +203,17 @@ class PlayerDatabase {
                     <div class="border-t pt-6">
                         <h3 class="text-xl font-bold mb-4">Current Season Statistics</h3>
                         <div class="grid grid-cols-4 gap-4">
-                            <div class="bg-gray-50 p-4 rounded text-center">
-                                <p class="text-2xl font-bold text-indigo-600">${mostRecentStats.Appearances || '0'}</p>
-                                <p class="text-sm text-gray-600">Appearances</p>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded text-center">
-                                <p class="text-2xl font-bold text-indigo-600">${mostRecentStats.Goals || '0'}</p>
-                                <p class="text-sm text-gray-600">Goals</p>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded text-center">
-                                <p class="text-2xl font-bold text-indigo-600">${mostRecentStats.Assists || '0'}</p>
-                                <p class="text-sm text-gray-600">Assists</p>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded text-center">
-                                <p class="text-2xl font-bold text-indigo-600">${mostRecentStats.Minutes || '0'}</p>
-                                <p class="text-sm text-gray-600">Minutes Played</p>
-                            </div>
+                            ${[
+                                { label: 'Appearances', value: mostRecentStats.Appearances },
+                                { label: 'Goals', value: mostRecentStats.Goals },
+                                { label: 'Assists', value: mostRecentStats.Assists },
+                                { label: 'Minutes', value: mostRecentStats.Minutes }
+                            ].map(({ label, value }) => `
+                                <div class="bg-gray-50 p-4 rounded text-center">
+                                    <p class="text-2xl font-bold text-indigo-600">${value || '0'}</p>
+                                    <p class="text-sm text-gray-600">${label}</p>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
 
@@ -275,6 +273,18 @@ class PlayerDatabase {
                 </div>
             </div>
         `;
+
+        // Add button to add player to squad
+        const addToSquadButton = document.createElement('button');
+        addToSquadButton.className = 'mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700 transition-colors';
+        addToSquadButton.textContent = 'Add to Squad';
+        addToSquadButton.onclick = () => this.addToSquad({
+            name: name,
+            age: age,
+            id: player.id
+        });
+        
+        playerCard.appendChild(addToSquadButton);
     }
 
     showLoading() {

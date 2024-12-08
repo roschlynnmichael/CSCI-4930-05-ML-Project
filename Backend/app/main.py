@@ -10,6 +10,8 @@ from .team_balance_service import TeamBalanceService
 from typing import Dict, List
 import pandas as pd
 import json
+from .scraper import PlayerScraper
+from .json_scraper import JsonScraper
 import numpy as np
 import logging
 
@@ -33,6 +35,8 @@ team_balance_optimizer = TeamBalanceOptimizer()
 scraper = PlayerScraper()
 team_balance_service = TeamBalanceService()
 parallel_scraper = ParallelPlayerScraper()
+player_scraper = PlayerScraper()
+json_scraper = JsonScraper(player_scraper)
 
 @app.get("/api/search-player")
 async def search_player(name: str):
@@ -79,6 +83,14 @@ async def general_exception_handler(request, exc):
 
 # Keep your existing routes below this line
 # ... (your other routes for team analysis, etc.)
+
+@app.post("/api/scrape-and-store")
+async def scrape_and_store(player_ids: List[str]):
+    return await json_scraper.scrape_and_store(player_ids)
+
+@app.get("/api/stored-players")
+def get_stored_players():
+    return json_scraper.get_stored_data()
 
 @app.post("/api/team-balance/save")
 async def save_team_balance(team_name: str, player_ids: List[str]):
