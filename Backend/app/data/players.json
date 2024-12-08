@@ -1,0 +1,19 @@
+{
+  "123": {
+    "id": "123",
+    "Full name": "Test Player 1",
+    "Date of birth/Age": "1995-01-01 (28)",
+    "Position": "Forward",
+    "Market value": "\u20ac15.00m",
+    "image_url": null,
+    "careerStats": [
+      {
+        "Season": "2022/23",
+        "Appearances": "34",
+        "Goals": "15",
+        "Assists": "7",
+        "Minutes": "2890"
+      }
+    ]
+  }
+}

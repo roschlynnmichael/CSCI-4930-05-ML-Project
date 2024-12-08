@@ -1,44 +1,37 @@
 import pandas as pd
 import numpy as np
-from typing import Dict, List
+from typing import Dict, List, Optional
 import logging
 from pathlib import Path
-import json
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics.pairwise import cosine_similarity
+import json
 
 logger = logging.getLogger(__name__)
 
 class RecommendationEngine:
     def __init__(self):
+        """Initialize the recommendation engine"""
         self._setup_logging()
         self.scaler = StandardScaler()
-        self.data_file = Path("app/data/players.json")
         
-        # Define career phases
+        # Define career phases and ideal distributions
         self.career_phases = {
-            'breakthrough': (16, 20),
-            'development': (21, 24),
-            'peak': (25, 29),
-            'twilight': (30, 40)
+            'breakthrough': {'age_range': (17, 20), 'ideal_pct': 0.20},
+            'development': {'age_range': (21, 24), 'ideal_pct': 0.30},
+            'peak': {'age_range': (25, 29), 'ideal_pct': 0.35},
+            'twilight': {'age_range': (30, 40), 'ideal_pct': 0.15}
         }
         
-        # Ideal distribution percentages
-        self.ideal_distribution = {
-            'breakthrough': 15,  # 15% of squad
-            'development': 30,   # 30% of squad
-            'peak': 40,         # 40% of squad
-            'twilight': 15      # 15% of squad
+        # Age distribution targets
+        self.age_distribution = {
+            'u21': {'ideal_pct': 0.15},
+            '21_25': {'ideal_pct': 0.35},
+            '26_29': {'ideal_pct': 0.35},
+            '30_plus': {'ideal_pct': 0.15}
         }
-        
-        # Features for similarity calculation
-        self.similarity_features = [
-            'age', 'market_value', 'appearances', 'goals', 
-            'assists', 'minutes_played'
-        ]
 
     def _setup_logging(self):
-        """Setup logging for recommendation engine"""
+        """Setup logging configuration"""
         log_dir = Path('app/logs')
         log_dir.mkdir(parents=True, exist_ok=True)
         
@@ -49,245 +42,221 @@ class RecommendationEngine:
         )
 
     def load_player_data(self) -> Dict:
-        """Load player data from JSON file"""
+        """Load player data from player service cache"""
         try:
-            if not self.data_file.exists():
-                logger.error("Player data file not found")
-                return {}
-                
-            with open(self.data_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
+            from app.data.player_service import PlayerService
+            player_service = PlayerService()
+            data = player_service.get_all_players()
+            logger.info(f"Loaded {len(data)} players from cache")
+            return data
         except Exception as e:
             logger.error(f"Error loading player data: {str(e)}")
             return {}
 
-    def get_recommendations(self, squad_player_ids: List[str], num_recommendations: int = 3) -> Dict:
-        """Get player recommendations based on squad needs"""
+    def get_recommendations(self, squad_ids: List[str]) -> Dict:
+        """Get recommendations based on squad analysis"""
         try:
-            # Load all player data
-            all_player_data = self.load_player_data()
-            if not all_player_data:
-                return {"error": "No player data available"}
+            # Load data and validate squad
+            all_players = self.load_player_data()
+            squad_players = [all_players.get(id) for id in squad_ids if id in all_players]
+            
+            if not squad_players:
+                logger.warning("No valid squad players found")
+                return self._empty_response()
 
-            # Split data into squad and available players
-            squad_data = [all_player_data[pid] for pid in squad_player_ids if pid in all_player_data]
-            available_players = [
-                player for pid, player in all_player_data.items() 
-                if pid not in squad_player_ids
-            ]
-
-            # Convert data to DataFrames
-            squad_df = self._convert_to_dataframe(squad_data)
-            available_df = self._convert_to_dataframe(available_players)
+            # Calculate current distributions
+            current_age_dist = self._calculate_age_distribution(squad_players)
+            current_phase_dist = self._calculate_phase_distribution(squad_players)
             
-            # Analyze squad demographics
-            demographics = self._analyze_squad_demographics(squad_df)
+            # Identify needs
+            needs = self._identify_needs(current_phase_dist)
             
-            # Identify squad needs
-            needs = self._identify_squad_needs(demographics)
-            
-            # Get recommendations for each need
+            # Get recommendations
             recommendations = {}
             for phase in needs:
-                candidates = self._get_candidates(
-                    squad_df,
-                    available_df,
-                    phase,
-                    num_recommendations
-                )
-                recommendations[phase] = self._rank_candidates(candidates, phase)
-            
+                candidates = self._get_phase_candidates(all_players, squad_ids, phase)
+                recommendations[phase] = candidates[:3]  # Top 3 recommendations per phase
+
             return {
-                'squad_analysis': demographics,
-                'identified_needs': needs,
-                'recommendations': recommendations
+                "squad_analysis": {
+                    "age_analysis": {
+                        "current": current_age_dist,
+                        "ideal": {k: v['ideal_pct'] for k, v in self.age_distribution.items()}
+                    },
+                    "phase_analysis": {
+                        "current": current_phase_dist,
+                        "ideal": {k: v['ideal_pct'] for k, v in self.career_phases.items()}
+                    }
+                },
+                "identified_needs": needs,
+                "recommendations": recommendations
             }
-            
+
         except Exception as e:
-            logger.error(f"Error generating recommendations: {str(e)}")
-            return {"error": str(e)}
+            logger.error(f"Error in get_recommendations: {str(e)}")
+            return self._empty_response()
 
-    def _convert_to_dataframe(self, player_data: List[Dict]) -> pd.DataFrame:
-        """Convert player data to DataFrame format"""
-        processed_data = []
-        
-        for player in player_data:
-            try:
-                # Extract basic info
-                player_info = {
-                    'id': player.get('id'),
-                    'name': player.get('Full name', 'Unknown'),
-                    'age': self._extract_age(player),
-                    'position': player.get('Position', ''),
-                    'market_value': self._extract_market_value(player.get('Market value', '0')),
-                }
-                
-                # Extract career stats
-                career_stats = self._aggregate_career_stats(player.get('careerStats', []))
-                player_info.update(career_stats)
-                
-                processed_data.append(player_info)
-                
-            except Exception as e:
-                logger.error(f"Error processing player data: {str(e)}")
-                continue
-                
-        return pd.DataFrame(processed_data)
-
-    def _extract_age(self, player: Dict) -> int:
-        """Extract age from player data"""
+    def _calculate_age_distribution(self, squad_players: List[Dict]) -> Dict[str, float]:
+        """Calculate age distribution percentages"""
         try:
-            if 'Date of birth/Age' in player:
-                age_str = player['Date of birth/Age']
-                if '(' in age_str and ')' in age_str:
-                    return int(age_str.split('(')[1].split(')')[0])
-            return 0
-        except:
-            return 0
+            total_players = len(squad_players)
+            if total_players == 0:
+                return {k: 0.0 for k in self.age_distribution.keys()}
 
-    def _extract_market_value(self, value_str: str) -> float:
-        """Extract market value as float"""
-        try:
-            value_str = value_str.replace('€', '').strip().lower()
-            if 'm' in value_str:
-                return float(value_str.replace('m', '')) * 1_000_000
-            elif 'k' in value_str:
-                return float(value_str.replace('k', '')) * 1_000
-            return 0.0
-        except:
-            return 0.0
-
-    def _aggregate_career_stats(self, career_stats: List[Dict]) -> Dict:
-        """Aggregate career statistics"""
-        total_stats = {
-            'appearances': 0,
-            'goals': 0,
-            'assists': 0,
-            'minutes_played': 0
-        }
-        
-        for season in career_stats:
-            try:
-                total_stats['appearances'] += int(season.get('Appearances', '0').replace(',', ''))
-                total_stats['goals'] += int(season.get('Goals', '0').replace(',', ''))
-                total_stats['assists'] += int(season.get('Assists', '0').replace(',', ''))
-                total_stats['minutes_played'] += int(season.get('Minutes', '0').replace(',', ''))
-            except ValueError:
-                continue
-                
-        return total_stats
-
-    def _analyze_squad_demographics(self, squad_df: pd.DataFrame) -> Dict:
-        """Analyze the age distribution of the squad"""
-        demographics = {phase: [] for phase in self.career_phases.keys()}
-        
-        for _, player in squad_df.iterrows():
-            age = player.get('age', 0)
-            for phase, (min_age, max_age) in self.career_phases.items():
-                if min_age <= age <= max_age:
-                    demographics[phase].append({
-                        'id': player.get('id'),
-                        'name': player.get('name'),
-                        'age': age,
-                        'position': player.get('position')
-                    })
-                    break
-        
-        # Calculate phase distributions
-        total_players = len(squad_df)
-        distribution = {
-            phase: {
-                'count': len(players),
-                'percentage': (len(players) / total_players * 100) if total_players > 0 else 0,
-                'players': players
+            # Initialize counters for each age group
+            age_counts = {
+                'u21': 0,
+                '21_25': 0,
+                '26_29': 0,
+                '30_plus': 0
             }
-            for phase, players in demographics.items()
-        }
-        
-        return distribution
 
-    def _identify_squad_needs(self, demographics: Dict) -> List[str]:
-        """Identify which career phases need strengthening"""
-        needs = []
+            # Count players in each age group
+            for player in squad_players:
+                age = self._extract_age(player.get('Date of birth/Age', '0'))
+                if age < 21:
+                    age_counts['u21'] += 1
+                elif 21 <= age <= 25:
+                    age_counts['21_25'] += 1
+                elif 26 <= age <= 29:
+                    age_counts['26_29'] += 1
+                else:  # age >= 30
+                    age_counts['30_plus'] += 1
+
+            # Calculate percentages
+            distribution = {
+                group: count / total_players 
+                for group, count in age_counts.items()
+            }
+
+            logger.info(f"Age distribution calculated: {distribution}")
+            return distribution
+
+        except Exception as e:
+            logger.error(f"Error calculating age distribution: {str(e)}")
+            return {k: 0.0 for k in self.age_distribution.keys()}
+
+    def _calculate_phase_distribution(self, players: List[Dict]) -> Dict[str, float]:
+        """Calculate current phase distribution"""
+        total = len(players)
+        if not total:
+            return {k: 0.0 for k in self.career_phases.keys()}
+            
+        distribution = {phase: 0 for phase in self.career_phases}
         
-        for phase, ideal_pct in self.ideal_distribution.items():
-            current_pct = demographics[phase]['percentage']
-            if current_pct < ideal_pct - 5:  # 5% tolerance
-                needs.append(phase)
+        for player in players:
+            age = self._extract_age(player['Date of birth/Age'])
+            phase = self._get_player_phase(age)
+            if phase:
+                distribution[phase] += 1
                 
+        return {k: v/total for k, v in distribution.items()}
+
+    def _identify_needs(self, current_dist: Dict[str, float]) -> List[str]:
+        """Identify phases that need strengthening"""
+        needs = []
+        for phase, data in self.career_phases.items():
+            if current_dist[phase] < data['ideal_pct'] - 0.1:  # 10% threshold
+                needs.append(phase)
         return needs
 
-    def _get_candidates(self, 
-                       squad_df: pd.DataFrame, 
-                       available_df: pd.DataFrame,
-                       target_phase: str,
-                       num_recommendations: int) -> pd.DataFrame:
-        """Get candidate players for a specific career phase"""
+    def _get_phase_candidates(self, all_players: Dict, squad_ids: List[str], target_phase: str) -> List[Dict]:
+        """Get candidate players for a specific phase"""
         try:
-            # Filter by age range
-            min_age, max_age = self.career_phases[target_phase]
-            candidates = available_df[
-                (available_df['age'] >= min_age) & 
-                (available_df['age'] <= max_age)
-            ].copy()
-            
-            if candidates.empty:
-                return pd.DataFrame()
-            
-            # Calculate similarity scores
-            squad_features = squad_df[self.similarity_features]
-            candidate_features = candidates[self.similarity_features]
-            
-            # Handle missing or invalid values
-            squad_features = squad_features.fillna(0)
-            candidate_features = candidate_features.fillna(0)
-            
-            # Scale features
-            scaler = StandardScaler()
-            scaled_features = scaler.fit_transform(
-                pd.concat([squad_features, candidate_features])
-            )
-            
-            # Calculate similarity
-            squad_scaled = scaled_features[:len(squad_features)]
-            candidates_scaled = scaled_features[len(squad_features):]
-            
-            # Calculate cosine similarity and normalize to [0,1] range
-            similarities = cosine_similarity(candidates_scaled, squad_scaled)
-            # Convert from [-1,1] to [0,1] range
-            similarities = (similarities + 1) / 2
-            
-            candidates['similarity_score'] = similarities.mean(axis=1)
-            
-            return candidates.nlargest(num_recommendations, 'similarity_score')
-            
+            candidates = []
+            min_age, max_age = self.career_phases[target_phase]['age_range']
+        
+            for pid, player in all_players.items():
+                if pid not in squad_ids:  # Don't recommend players already in squad
+                    try:
+                        age = self._extract_age(player.get('Date of birth/Age', '0'))
+                        if min_age <= age <= max_age:
+                            similarity_score = self._calculate_similarity(player)
+                            candidates.append({
+                                'id': pid,
+                                'Full_name': player.get('Full name', 'Unknown'),
+                                'Position': player.get('Position', 'Unknown'),
+                                'Date of birth/Age': player.get('Date of birth/Age', 'Unknown'),
+                                'Market value': player.get('Market value', 'N/A'),
+                                'image_url': player.get('image_url', ''),
+                                'similarity_score': similarity_score
+                            })
+                    except Exception as e:
+                        logger.error(f"Error processing player {pid}: {str(e)}")
+                        continue
+        
+        # Sort by similarity score and return top candidates
+            sorted_candidates = sorted(candidates, key=lambda x: x['similarity_score'], reverse=True)
+            return sorted_candidates[:5]  # Return top 5 candidates per phase
+        
         except Exception as e:
-            logger.error(f"Error getting candidates: {str(e)}")
-            return pd.DataFrame()
+            logger.error(f"Error in _get_phase_candidates: {str(e)}")
+            return []
 
-    def _rank_candidates(self, candidates: pd.DataFrame, target_phase: str) -> List[Dict]:
-        """Format and rank candidate recommendations"""
-        recommendations = []
+    def _extract_age(self, age_string: str) -> int:
+        """Extract age from string format like '1995-01-01 (28)'"""
+        try:
+            # Extract age from parentheses
+            age = int(age_string.split('(')[1].replace(')', ''))
+            return age
+        except Exception as e:
+            logger.error(f"Error extracting age from {age_string}: {str(e)}")
+            return 0
+
+    def _get_player_phase(self, age: int) -> Optional[str]:
+        """Determine player's career phase based on age"""
+        for phase, data in self.career_phases.items():
+            min_age, max_age = data['age_range']
+            if min_age <= age <= max_age:
+                return phase
+        return None
+
+    def _calculate_similarity(self, player: Dict) -> float:
+        """Calculate similarity score based on player stats"""
+        try:
+            # Extract career stats
+            stats = player.get('careerStats', [{}])[0]
         
-        for _, player in candidates.iterrows():
-            try:
-                recommendations.append({
-                    'id': player.get('id'),
-                    'name': player.get('name'),
-                    'age': player.get('age'),
-                    'position': player.get('position', ''),
-                    'market_value': player.get('market_value', 0),
-                    'similarity_score': float(player.get('similarity_score', 0)),
-                    'career_phase': target_phase,
-                    'stats': {
-                        'appearances': player.get('appearances', 0),
-                        'goals': player.get('goals', 0),
-                        'assists': player.get('assists', 0),
-                        'minutes_played': player.get('minutes_played', 0)
-                    }
-                })
-            except Exception as e:
-                logger.error(f"Error formatting recommendation: {str(e)}")
-                continue
+            # Get base stats with defaults
+            appearances = float(stats.get('Appearances', 0))
+            minutes = float(stats.get('Minutes played', 0))
+            goals = float(stats.get('Goals', 0))
+            assists = float(stats.get('Assists', 0))
+            
+            # Calculate normalized scores
+            appearance_score = min(1.0, appearances / 38)  # Full season
+            minutes_score = min(1.0, minutes / 3420)  # 90 mins * 38 games
+            goals_score = min(1.0, goals / 20)  # Assuming 20 goals is excellent
+            assists_score = min(1.0, assists / 15)  # Assuming 15 assists is excellent
+            
+            # Weighted average
+            total_score = (
+                appearance_score * 0.3 +
+                minutes_score * 0.3 +
+                goals_score * 0.2 +
+                assists_score * 0.2
+            )
         
-        return sorted(recommendations, key=lambda x: x['similarity_score'], reverse=True)
+            # Ensure score is between 0.6 and 0.95
+            return max(0.6, min(0.95, total_score))
+        
+        except Exception as e:
+            logger.error(f"Error calculating similarity: {str(e)}")
+            return 0.6
+
+    def _empty_response(self) -> Dict:
+        """Return empty response structure"""
+        return {
+            "squad_analysis": {
+                "age_analysis": {
+                    "current": {k: 0.0 for k in self.age_distribution.keys()},
+                    "ideal": {k: v['ideal_pct'] for k, v in self.age_distribution.items()}
+                },
+                "phase_analysis": {
+                    "current": {k: 0.0 for k in self.career_phases.keys()},
+                    "ideal": {k: v['ideal_pct'] for k, v in self.career_phases.items()}
+                }
+            },
+            "identified_needs": [],
+            "recommendations": {}
+        }

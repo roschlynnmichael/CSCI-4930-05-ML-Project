@@ -4,12 +4,23 @@ import logging
 from typing import Dict, Optional, List
 
 class PlayerService:
+    _instance = None
+    _initialized = False
+    _players_cache = {}  # Class-level cache
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(PlayerService, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self):
-        self.base_url = "https://www.transfermarkt.com"
-        self.logger = logging.getLogger(__name__)
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
+        if not PlayerService._initialized:
+            self.base_url = "https://www.transfermarkt.com"
+            self.headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            self.logger = logging.getLogger(__name__)
+            PlayerService._initialized = True
 
     async def search_player(self, name: str) -> Optional[Dict]:
         """
@@ -54,10 +65,13 @@ class PlayerService:
             raise
 
     async def get_player_details(self, player_id: str) -> Optional[Dict]:
-        """
-        Get detailed player information from their profile page
-        """
+        """Get detailed player information from their profile page"""
         try:
+            # Check cache first
+            if player_id in self._players_cache:
+                self.logger.info(f"Returning cached data for player {player_id}")
+                return self._players_cache[player_id]
+
             player_url = f"{self.base_url}/spieler/profil/spieler/{player_id}"
             self.logger.info(f"Fetching player details from: {player_url}")
             
@@ -68,11 +82,6 @@ class PlayerService:
                 
             soup = BeautifulSoup(response.content, 'html.parser')
             
-            # Get player info
-            player_header = soup.find('div', class_='data-header__profile-container')
-            player_info = soup.find('div', class_='info-table')
-            market_value_div = soup.find('div', class_='tm-player-market-value-development__current-value')
-            
             # Get player name
             name_element = soup.find('h1', class_='data-header__headline-wrapper')
             player_name = name_element.text.strip() if name_element else 'Unknown'
@@ -81,38 +90,67 @@ class PlayerService:
             img_element = soup.find('img', class_='data-header__profile-image')
             image_url = img_element['src'] if img_element and 'src' in img_element.attrs else None
 
-            # Get player details
-            info_items = soup.find_all('span', class_='info-table__content')
-            info_labels = soup.find_all('span', class_='info-table__content--regular')
-            
-            info_dict = {}
-            for label, content in zip(info_labels, info_items):
-                key = label.text.strip().lower().replace(' ', '_')
-                value = content.text.strip()
-                info_dict[key] = value
+            # Get player position
+            position_element = soup.find('li', class_='data-header__position')
+            position = position_element.text.strip() if position_element else 'Unknown'
 
-            # Get current club
-            current_club_element = soup.find('span', class_='data-header__club')
-            current_club = current_club_element.text.strip() if current_club_element else 'Unknown'
+            # Get birth date and age
+            info_table = soup.find('div', class_='info-table')
+            birth_date = None
+            age = None
+            if info_table:
+                birth_elements = info_table.find_all('span', class_='info-table__content')
+                for element in birth_elements:
+                    text = element.text.strip()
+                    if '(' in text and ')' in text:  # Format: "Jan 1, 1990 (33)"
+                        birth_date = text.split('(')[0].strip()
+                        age = text.split('(')[1].replace(')', '').strip()
+                        break
 
             # Get market value
-            market_value = None
-            if market_value_div:
-                market_value = market_value_div.text.strip()
+            market_value_div = soup.find('div', class_='tm-player-market-value-development__current-value')
+            market_value = market_value_div.text.strip() if market_value_div else 'Unknown'
 
             # Get statistics
+            stats = {}
             stats_table = soup.find('div', class_='grid statistics-list')
-            statistics = self._extract_stats(stats_table) if stats_table else {}
+            if stats_table:
+                stat_items = stats_table.find_all('div', class_='grid__cell')
+                for item in stat_items:
+                    label = item.find('span', class_='label')
+                    value = item.find('span', class_='value')
+                    if label and value:
+                        key = label.text.strip().lower()
+                        if 'appearances' in key:
+                            stats['appearances'] = value.text.strip()
+                        elif 'goals' in key:
+                            stats['goals'] = value.text.strip()
+                        elif 'assists' in key:
+                            stats['assists'] = value.text.strip()
+                        elif 'minutes' in key:
+                            stats['minutes'] = value.text.strip()
 
-            return {
+            # Create player data dictionary
+            player_data = {
                 'id': player_id,
-                'name': player_name,
+                'Full name': player_name,
+                'Date of birth/Age': f"{birth_date} ({age})" if birth_date and age else 'Unknown',
+                'Position': position,
+                'Market value': market_value,
                 'image_url': image_url,
-                'current_club': current_club,
-                'market_value': market_value,
-                'info': info_dict,
-                'statistics': statistics
+                'careerStats': [{
+                    'Season': '2023/24',
+                    'Appearances': stats.get('appearances', '0'),
+                    'Goals': stats.get('goals', '0'),
+                    'Assists': stats.get('assists', '0'),
+                    'Minutes': stats.get('minutes', '0')
+                }]
             }
+
+            # Cache the player data
+            self._players_cache[player_id] = player_data
+            self.logger.info(f"Added player {player_id} to cache. Cache now contains {len(self._players_cache)} players")
+            return player_data
 
         except Exception as e:
             self.logger.error(f"Error in get_player_details: {str(e)}")
@@ -135,4 +173,13 @@ class PlayerService:
             return stats
         except Exception as e:
             self.logger.error(f"Error extracting stats: {str(e)}")
+            return {}
+
+    def get_all_players(self) -> Dict:
+        """Get all available players from the cache"""
+        try:
+            self.logger.info(f"Players in cache: {list(self._players_cache.keys())}")
+            return self._players_cache
+        except Exception as e:
+            self.logger.error(f"Error getting all players: {str(e)}")
             return {}

@@ -7,6 +7,7 @@ from app.model.team_balance import TeamBalanceOptimizer
 from .parallel_scrapper import ParallelPlayerScraper
 from app.scraper import PlayerScraper
 from .team_balance_service import TeamBalanceService
+from app.model.recommendation_engine import RecommendationEngine
 from typing import Dict, List
 import pandas as pd
 import json
@@ -37,6 +38,7 @@ team_balance_service = TeamBalanceService()
 parallel_scraper = ParallelPlayerScraper()
 player_scraper = PlayerScraper()
 json_scraper = JsonScraper(player_scraper)
+recommendation_engine = RecommendationEngine()
 
 @app.get("/api/search-player")
 async def search_player(name: str):
@@ -291,4 +293,24 @@ async def get_players_parallel(player_ids: List[str]):
         return results
     except Exception as e:
         logger.error(f"Error in parallel player scraping: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/api/combined-analysis")
+async def combined_analysis(data: Dict):
+    try:
+        player_service = PlayerService()
+        recommendation_engine = RecommendationEngine()
+        
+        # Update cache with received player data
+        for player in data.get('players', []):
+            player_id = player['id']
+            player_service._players_cache[player_id] = player
+            
+        # Get recommendations using player IDs
+        recommendations = recommendation_engine.get_recommendations(data.get('player_ids', []))
+        
+        return recommendations
+        
+    except Exception as e:
+        logger.error(f"Error in combined analysis: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

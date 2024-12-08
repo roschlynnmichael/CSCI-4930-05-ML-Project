@@ -195,118 +195,360 @@ function removePlayer(playerId) {
 }
 
 async function analyzeTeam() {
+    if (selectedPlayers.length === 0) {
+        showError('Please add players to analyze');
+        return;
+    }
+
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+
+    const playerIds = selectedPlayers.map(p => p.id);
+    
     try {
-        document.getElementById('loadingOverlay').classList.remove('hidden');
-        
-        const response = await fetch(`${BACKEND_URL}/api/analyze-team-balance`, {
+        const response = await fetch(`${BACKEND_URL}/api/combined-analysis`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(selectedPlayers)
+            body: JSON.stringify({
+                players: selectedPlayers,
+                player_ids: playerIds
+            })
         });
-        
-        const analysis = await response.json();
-        
-        // Update the balance display
-        updateAnalysisDisplay(analysis);
-        
-        // Your existing chart updates...
-        updateCharts(analysis);
-        
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        console.log('Analysis response:', data);
+
+        // Check if we have valid data before updating UI
+        if (data && data.squad_analysis) {
+            updateSquadMetrics(data);
+            updateBalanceScores(data);
+            updateDistributionCharts(data);
+            updateRecommendations(data);
+            // Remove the displayPlayerRecommendations call since we removed that section
+        } else {
+            throw new Error('Invalid data structure received from server');
+        }
     } catch (error) {
         console.error('Error analyzing team:', error);
+        showError('Error analyzing team. Please try again later.');
     } finally {
         document.getElementById('loadingOverlay').classList.add('hidden');
     }
 }
 
+function calculateAgeBalance(players) {
+    if (!players.length) return 0;
+    
+    const ages = players.map(player => extractAgeFromString(player['Date of birth/Age']) || 0);
+    const avgAge = ages.reduce((a, b) => a + b, 0) / ages.length;
+    
+    // Ideal average age is around 26
+    const ageDiff = Math.abs(avgAge - 26);
+    return Math.max(0, 1 - (ageDiff / 10)); // Normalize to 0-1
+}
+
+function calculatePhaseBalance(current, ideal) {
+    let totalDiff = 0;
+    Object.keys(ideal).forEach(phase => {
+        totalDiff += Math.abs((current[phase] || 0) - (ideal[phase] || 0));
+    });
+    return Math.max(0, 1 - totalDiff);
+}
+
 function extractAgeFromString(dateString) {
     if (!dateString) return null;
-    // Match pattern like "Jun 24, 1987 (37)"
-    const ageMatch = dateString.match(/\((\d+)\)/);
-    return ageMatch ? parseInt(ageMatch[1]) : null;
+    const match = dateString.match(/\((\d+)\)/);
+    return match ? parseInt(match[1]) : null;
 }
 
-function updateAnalysisDisplay(analysis) {
-    // Update squad metrics
-    document.getElementById('averageAge').textContent = analysis.squad_metrics.average_age;
-    document.getElementById('squadSize').textContent = analysis.squad_metrics.total_players;
+function updateSquadMetrics(data) {
+    const squadAnalysis = data.squad_analysis || {};
+    const totalPlayers = selectedPlayers.length;
+    const averageAge = selectedPlayers.reduce((sum, player) => {
+        const age = extractAgeFromString(player['Date of birth/Age']) || 0;
+        return sum + age;
+    }, 0) / totalPlayers;
 
-    // Update balance scores and progress bars
-    const scores = {
-        'overall': analysis.balance_scores.overall_balance,
-        'age': analysis.balance_scores.age_balance,
-        'phase': analysis.balance_scores.phase_balance
-    };
+    document.getElementById('averageAge').textContent = averageAge.toFixed(1);
+    document.getElementById('squadSize').textContent = totalPlayers;
+}
 
-    Object.entries(scores).forEach(([key, value]) => {
-        const percentage = Math.round(value * 100);
-        document.getElementById(`${key}BalanceScore`).textContent = `${percentage}%`;
-        document.getElementById(`${key}BalanceBar`).style.width = `${percentage}%`;
+function updateBalanceScores(data) {
+    try {
+        const phaseAnalysis = data.squad_analysis?.phase_analysis || {};
+        const ageAnalysis = data.squad_analysis?.age_analysis || {};
+        
+        // Calculate phase balance
+        const phaseBalance = calculateDistributionBalance(
+            phaseAnalysis.current || {},
+            phaseAnalysis.ideal || {}
+        );
+        
+        // Calculate age balance
+        const ageBalance = calculateDistributionBalance(
+            ageAnalysis.current || {},
+            ageAnalysis.ideal || {}
+        );
+        
+        // Calculate overall balance (weighted average)
+        const overallBalance = (phaseBalance * 0.6 + ageBalance * 0.4);
+        
+        // Update UI
+        updateBalanceScore('overall', overallBalance);
+        updateBalanceScore('age', ageBalance);
+        updateBalanceScore('phase', phaseBalance);
+        
+    } catch (error) {
+        console.error('Error updating balance scores:', error);
+    }
+}
+
+function calculateDistributionBalance(current, ideal) {
+    let totalDiff = 0;
+    let count = 0;
+    
+    Object.keys(ideal).forEach(key => {
+        const currentValue = current[key] || 0;
+        const idealValue = ideal[key] || 0;
+        totalDiff += Math.abs(currentValue - idealValue);
+        count++;
     });
-
-    // Update recommendations
-    const recommendationsDiv = document.getElementById('recommendations');
-    recommendationsDiv.innerHTML = analysis.recommendations
-        .map(rec => `<div class="flex items-center space-x-2">
-                        <span class="text-indigo-600">•</span>
-                        <span>${rec}</span>
-                     </div>`)
-        .join('');
-
-    // Create/Update charts
-    createDistributionCharts(analysis);
+    
+    // Normalize the difference to a 0-1 scale
+    return Math.max(0, 1 - (totalDiff / 2));
 }
 
-function createDistributionCharts(analysis) {
+function updateBalanceScore(type, score) {
+    const scoreElement = document.getElementById(`${type}BalanceScore`);
+    const barElement = document.getElementById(`${type}BalanceBar`);
+    
+    if (scoreElement && barElement) {
+        const percentage = Math.round(score * 100);
+        scoreElement.textContent = `${percentage}%`;
+        barElement.style.width = `${percentage}%`;
+        
+        // Update bar color based on score
+        barElement.className = `h-2.5 rounded-full ${getProgressBarClass(score)}`;
+    }
+}
+
+function updateDistributionCharts(data) {
+    const ageAnalysis = data.squad_analysis?.age_analysis || {};
+    const phaseAnalysis = data.squad_analysis?.phase_analysis || {};
+    
     // Age Distribution Chart
+    const ageLabels = ['Under 21', '21-25', '26-29', '30+'];
+    const ageKeys = ['u21', '21_25', '26_29', '30_plus'];
+    
+    const ageCurrentData = ageKeys.map(key => 
+        (ageAnalysis.current?.[key] || 0) * 100
+    );
+    
+    const ageIdealData = ageKeys.map(key => 
+        (ageAnalysis.ideal?.[key] || 0) * 100
+    );
+
+    if (window.ageChart) {
+        window.ageChart.destroy();
+    }
+
     const ageCtx = document.getElementById('ageDistributionChart').getContext('2d');
-    new Chart(ageCtx, {
+    window.ageChart = new Chart(ageCtx, {
         type: 'bar',
         data: {
-            labels: ['U21', '21-25', '26-29', '30+'],
-            datasets: [{
-                label: 'Current',
-                data: Object.values(analysis.age_analysis.current),
-                backgroundColor: 'rgba(99, 102, 241, 0.5)',
-                borderColor: 'rgb(99, 102, 241)',
-                borderWidth: 1
-            }, {
-                label: 'Ideal',
-                data: Object.values(analysis.age_analysis.ideal),
-                type: 'line',
-                borderColor: 'rgb(16, 185, 129)',
-                borderWidth: 2,
-                fill: false
-            }]
+            labels: ageLabels,
+            datasets: [
+                {
+                    label: 'Current Distribution',
+                    data: ageCurrentData,
+                    backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                    borderColor: 'rgb(99, 102, 241)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Ideal Distribution',
+                    data: ageIdealData,
+                    type: 'line',
+                    borderColor: 'rgb(234, 88, 12)',
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: 'rgb(234, 88, 12)'
+                }
+            ]
         },
-        options: getChartOptions('Age Distribution')
+        options: getChartOptions('Age Distribution (%)')
     });
 
-    // Phase Distribution Chart
+    // Career Phase Distribution Chart
+    const phaseLabels = ['Breakthrough', 'Development', 'Peak', 'Twilight'];
+    const phaseKeys = ['breakthrough', 'development', 'peak', 'twilight'];
+    
+    const phaseCurrentData = phaseKeys.map(key => 
+        (phaseAnalysis.current?.[key] || 0) * 100
+    );
+    
+    const phaseIdealData = phaseKeys.map(key => 
+        (phaseAnalysis.ideal?.[key] || 0) * 100
+    );
+
+    if (window.phaseChart) {
+        window.phaseChart.destroy();
+    }
+
     const phaseCtx = document.getElementById('phaseDistributionChart').getContext('2d');
-    new Chart(phaseCtx, {
+    window.phaseChart = new Chart(phaseCtx, {
         type: 'bar',
         data: {
-            labels: ['Breakthrough', 'Development', 'Peak', 'Twilight'],
-            datasets: [{
-                label: 'Current',
-                data: Object.values(analysis.phase_analysis.current),
-                backgroundColor: 'rgba(99, 102, 241, 0.5)',
-                borderColor: 'rgb(99, 102, 241)',
-                borderWidth: 1
-            }, {
-                label: 'Ideal',
-                data: Object.values(analysis.phase_analysis.ideal),
-                type: 'line',
-                borderColor: 'rgb(16, 185, 129)',
-                borderWidth: 2,
-                fill: false
-            }]
+            labels: phaseLabels,
+            datasets: [
+                {
+                    label: 'Current Distribution',
+                    data: phaseCurrentData,
+                    backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                    borderColor: 'rgb(99, 102, 241)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Ideal Distribution',
+                    data: phaseIdealData,
+                    type: 'line',
+                    borderColor: 'rgb(234, 88, 12)',
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: 'rgb(234, 88, 12)'
+                }
+            ]
         },
-        options: getChartOptions('Career Phase Distribution')
+        options: getChartOptions('Career Phase Distribution (%)')
     });
+}
+
+function getChartOptions(title) {
+    return {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: title
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    callback: value => value + '%'
+                }
+            }
+        }
+    };
+}
+
+function updateRecommendations(data) {
+    const recommendationsDiv = document.getElementById('recommendations');
+    const squadAnalysis = data.squad_analysis || {};
+    const needs = data.identified_needs || [];
+    
+    let recommendationsHTML = '<div class="space-y-4">';
+    
+    // Squad Size Recommendation
+    const squadSize = selectedPlayers.length;
+    recommendationsHTML += `
+        <div class="recommendation-section">
+            <h4 class="font-semibold text-lg mb-2">Squad Size Analysis</h4>
+            <p>${getSquadSizeRecommendation(squadSize)}</p>
+        </div>
+    `;
+
+    // Age Distribution Recommendation
+    const ageAnalysis = squadAnalysis.age_analysis || {};
+    recommendationsHTML += `
+        <div class="recommendation-section">
+            <h4 class="font-semibold text-lg mb-2">Age Distribution Analysis</h4>
+            <p>${getAgeDistributionRecommendation(ageAnalysis)}</p>
+        </div>
+    `;
+
+    // Career Phase Recommendations
+    if (needs.length > 0) {
+        recommendationsHTML += `
+            <div class="recommendation-section">
+                <h4 class="font-semibold text-lg mb-2">Career Phase Recommendations</h4>
+                <p>Your squad needs strengthening in the following phases:</p>
+                <ul class="list-disc pl-5 mt-2">
+                    ${needs.map(phase => `
+                        <li>${phase.charAt(0).toUpperCase() + phase.slice(1)} phase 
+                            (${getPhaseRecommendation(phase)})</li>
+                    `).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
+    recommendationsHTML += '</div>';
+    recommendationsDiv.innerHTML = recommendationsHTML;
+}
+
+function getSquadSizeRecommendation(size) {
+    if (size < 20) return "Your squad is understaffed. Consider adding more players to reach the ideal size of 22-25 players.";
+    if (size > 25) return "Your squad might be too large. Consider streamlining it to 22-25 players for optimal management.";
+    return "Your squad size is optimal.";
+}
+
+function getAgeDistributionRecommendation(analysis) {
+    const current = analysis.current || {};
+    const ideal = analysis.ideal || {};
+    let recommendations = [];
+    
+    Object.entries(current).forEach(([group, value]) => {
+        const diff = (value - (ideal[group] || 0));
+        if (Math.abs(diff) > 0.1) {
+            const groupName = group.replace('_', '-').toUpperCase();
+            recommendations.push(
+                diff > 0 
+                    ? `Consider reducing ${groupName} players (currently ${(value * 100).toFixed(1)}% vs ideal ${(ideal[group] * 100).toFixed(1)}%)`
+                    : `Need more ${groupName} players (currently ${(value * 100).toFixed(1)}% vs ideal ${(ideal[group] * 100).toFixed(1)}%)`
+            );
+        }
+    });
+    
+    return recommendations.length > 0 
+        ? recommendations.join('. ') + '.'
+        : "Age distribution is well balanced.";
+}
+
+function getPhaseRecommendation(phase) {
+    const recommendations = {
+        'breakthrough': 'Focus on young talents with high potential',
+        'development': 'Look for emerging players showing consistent growth',
+        'peak': 'Target established players in their prime years',
+        'twilight': 'Consider experienced players who can mentor younger squad members'
+    };
+    return recommendations[phase] || '';
+}
+
+function showError(message) {
+    const recommendationsDiv = document.getElementById('recommendations');
+    recommendationsDiv.innerHTML = `
+        <div class="text-red-600">
+            ${message}
+        </div>
+    `;
 }
 
 // Add event listener to analyze button
@@ -331,59 +573,6 @@ function getProgressBarClass(score) {
     if (score >= 0.8) return 'bg-gradient-to-r from-emerald-500 to-emerald-600';
     if (score >= 0.6) return 'bg-gradient-to-r from-amber-500 to-amber-600';
     return 'bg-gradient-to-r from-red-500 to-red-600';
-}
-
-function getChartOptions(title) {
-    return {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'top',
-                labels: {
-                    font: {
-                        family: "'Inter', sans-serif",
-                        size: 12
-                    },
-                    padding: 20
-                }
-            },
-            title: {
-                display: true,
-                text: title,
-                font: {
-                    family: "'Inter', sans-serif",
-                    size: 16,
-                    weight: 'bold'
-                },
-                padding: {
-                    bottom: 20
-                }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)'
-                },
-                ticks: {
-                    font: {
-                        family: "'Inter', sans-serif"
-                    }
-                }
-            },
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    font: {
-                        family: "'Inter', sans-serif"
-                    }
-                }
-            }
-        }
-    };
 }
 
 // Add this function to handle parallel scraping
@@ -464,36 +653,74 @@ function loadStoredPlayerData() {
     return storedData ? JSON.parse(storedData) : {};
 }
 
-function updateBalanceDisplay(analysis) {
-    // Update overall balance score
-    const overallScore = Math.round(analysis.balance_scores.overall_balance * 100);
-    const circumference = 2 * Math.PI * 32; // r=32
-    const offset = circumference - (analysis.balance_scores.overall_balance * circumference);
-    
-    const circle = document.getElementById('overallBalanceCircle');
-    const text = document.getElementById('overallBalanceText');
-    
-    circle.style.strokeDasharray = `${circumference} ${circumference}`;
-    circle.style.strokeDashoffset = offset;
-    text.textContent = `${overallScore}%`;
+function displayPlayerRecommendations(recommendations) {
+    const container = document.getElementById('playerRecommendations');
+    container.innerHTML = '';
 
-    // Update age distribution percentages
-    const ageDistribution = analysis.age_analysis.current;
-    document.getElementById('u21Percentage').textContent = `${Math.round(ageDistribution.u21 * 100)}%`;
-    document.getElementById('age21_25Percentage').textContent = `${Math.round(ageDistribution['21_25'] * 100)}%`;
-    document.getElementById('age26_29Percentage').textContent = `${Math.round(ageDistribution['26_29'] * 100)}%`;
-    document.getElementById('age30PlusPercentage').textContent = `${Math.round(ageDistribution['30_plus'] * 100)}%`;
+    if (!recommendations || Object.keys(recommendations).length === 0) {
+        container.innerHTML = '<div class="col-span-3 text-center text-gray-500">No recommendations available</div>';
+        return;
+    }
 
-    // Update career phase percentages
-    const phaseDistribution = analysis.phase_analysis.current;
-    document.getElementById('breakthroughPercentage').textContent = `${Math.round(phaseDistribution.breakthrough * 100)}%`;
-    document.getElementById('developmentPercentage').textContent = `${Math.round(phaseDistribution.development * 100)}%`;
-    document.getElementById('peakPercentage').textContent = `${Math.round(phaseDistribution.peak * 100)}%`;
-    document.getElementById('twilightPercentage').textContent = `${Math.round(phaseDistribution.twilight * 100)}%`;
+    Object.entries(recommendations).forEach(([phase, players]) => {
+        // Create phase section
+        const phaseSection = document.createElement('div');
+        phaseSection.className = 'col-span-full mb-6';
+        
+        const phaseTitle = phase.charAt(0).toUpperCase() + phase.slice(1);
+        phaseSection.innerHTML = `
+            <h4 class="text-lg font-semibold mb-3">${phaseTitle} Phase Recommendations</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${players.map(player => `
+                    <div class="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <img src="${player.image_url || DEFAULT_PLAYER_IMAGE}" 
+                                 class="w-12 h-12 rounded-full object-cover"
+                                 alt="${player.Full_name}"
+                                 onerror="this.src='${DEFAULT_PLAYER_IMAGE}'">
+                            <div>
+                                <h5 class="font-semibold">${player.Full_name}</h5>
+                                <p class="text-sm text-gray-600">${player.Position}</p>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-sm">
+                                <span>Match Score:</span>
+                                <span class="font-medium text-indigo-600">
+                                    ${(player.similarity_score * 100).toFixed(1)}%
+                                </span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Age:</span>
+                                <span>${player['Date of birth/Age']}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Market Value:</span>
+                                <span>${player['Market value'] || 'N/A'}</span>
+                            </div>
+                        </div>
+                        <button onclick="addPlayerToSquad('${player.id}')" 
+                                class="mt-3 w-full bg-indigo-100 text-indigo-700 px-3 py-1 rounded-md hover:bg-indigo-200 transition-colors">
+                            Add to Squad
+                        </button>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.appendChild(phaseSection);
+    });
+}
 
-    // Update recommendations
-    const recommendationsDiv = document.getElementById('balanceRecommendations');
-    recommendationsDiv.innerHTML = analysis.recommendations
-        .map(rec => `<div class="mb-1">• ${rec}</div>`)
-        .join('');
+function addPlayerToSquad(playerId) {
+    // Add logic to fetch player details and add to selected players
+    fetch(`${BACKEND_URL}/api/player/${playerId}`)
+        .then(response => response.json())
+        .then(player => {
+            if (!selectedPlayers.find(p => p.id === player.id)) {
+                selectedPlayers.push(player);
+                updateSelectedPlayersList();
+                analyzeTeam(); // Re-analyze with new player
+            }
+        })
+        .catch(error => console.error('Error adding player:', error));
 }
