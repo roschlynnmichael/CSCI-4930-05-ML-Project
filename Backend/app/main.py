@@ -7,6 +7,8 @@ from app.model.team_balance import TeamBalanceOptimizer
 from app.scraper import PlayerScraper
 from typing import Dict, List
 import pandas as pd
+import json
+import numpy as np
 import logging
 
 # Configure logging
@@ -18,7 +20,7 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://127.0.0.1:5000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,38 +77,21 @@ async def general_exception_handler(request, exc):
 # ... (your other routes for team analysis, etc.)
 
 @app.post("/api/analyze-team-balance")
-async def analyze_team_balance(team_data: List[dict]):
-    """Analyze team balance and provide recommendations"""
+async def analyze_team_balance(squad: List[dict]):
     try:
-        logger.info("Analyzing team balance")
+        # Convert squad list to pandas DataFrame
+        df = pd.DataFrame(squad)
         
-        # Convert team data to DataFrame
-        df = pd.DataFrame(team_data)
+        # Initialize optimizer
+        optimizer = TeamBalanceOptimizer()
         
-        # Add required columns if they don't exist
-        if 'Age' not in df.columns and 'info' in df.columns:
-            df['Age'] = df['info'].apply(lambda x: x.get('age', 0) if x else 0)
+        # Get analysis
+        analysis = optimizer.analyze_squad_balance(df)
         
-        if 'Position' not in df.columns and 'info' in df.columns:
-            df['Position'] = df['info'].apply(lambda x: x.get('position', '') if x else '')
+        # Convert numpy values to Python native types
+        analysis = json.loads(json.dumps(analysis, default=lambda x: float(x) if isinstance(x, np.floating) else x))
         
-        # Ensure required columns exist
-        required_columns = ['Name', 'Age', 'Position']
-        for col in required_columns:
-            if col not in df.columns:
-                df[col] = ''
-        
-        # Convert Age to numeric
-        df['Age'] = pd.to_numeric(df['Age'], errors='coerce')
-        
-        # Perform analysis
-        analysis_results = team_balance_optimizer.analyze_squad_balance(df)
-        
-        return {
-            "analysis": analysis_results,
-            "status": "success"
-        }
-        
+        return analysis
     except Exception as e:
         logger.error(f"Error in team balance analysis: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,75 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-12">
-    <!-- Header Section -->
-    <div class="text-center mb-12" data-aos="fade-up" data-aos-duration="1000">
-        <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-emerald-600">Team Balance Analyzer</h1>
-        <p class="text-gray-600 mt-2">Optimize your squad composition with AI-powered analysis</p>
-    </div>
-    
-    <!-- Team Selection Section -->
-    <div class="glass-card p-8 mb-8" data-aos="fade-up" data-aos-delay="200">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Select Players</h3>
-                <div class="space-y-4">
-                    <input type="text" 
-                           id="playerSearch" 
-                           class="input-field w-full px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
-                           placeholder="Search for players...">
-                    <div id="playerResults" class="mt-2 space-y-2"></div>
-                </div>
-            </div>
-            <div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Selected Squad</h3>
-                <div id="selectedPlayers" class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar"></div>
-            </div>
-        </div>
-        <div class="mt-8 text-center">
-            <button id="analyzeTeam" 
-                    class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-indigo-600 to-emerald-600 text-white rounded-lg hover:from-indigo-700 hover:to-emerald-700 transition-all duration-300 hover:-translate-y-0.5 shadow-lg hover:shadow-xl">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/>
-                    <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>
-                </svg>
-                Analyze Team Balance
-            </button>
-        </div>
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Team Balance Analysis</h1>
+        <button id="analyzeTeam" 
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Analyze Team
+        </button>
     </div>
 
-    <!-- Analysis Results Section -->
-    <div id="analysisResults" class="hidden space-y-8" data-aos="fade-up" data-aos-delay="400">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Squad Metrics -->
-            <div class="glass-card p-6">
-                <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-emerald-600 mb-4">Squad Metrics</h3>
-                <div id="squadMetrics" class="space-y-2"></div>
-            </div>
-            
-            <!-- Balance Scores -->
-            <div class="glass-card p-6">
-                <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-emerald-600 mb-4">Balance Scores</h3>
-                <div id="balanceScores" class="space-y-4"></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h2 class="text-xl font-bold mb-4">Selected Players</h2>
+            <div id="selectedPlayers" class="space-y-2">
+                <!-- Selected players will be added here -->
             </div>
         </div>
 
-        <!-- Distributions -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="glass-card p-6">
-                <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-emerald-600 mb-4">Age Distribution</h3>
-                <canvas id="ageChart"></canvas>
+        <div>
+            <h2 class="text-xl font-bold mb-4">Analysis Results</h2>
+            <div id="analysisResults" class="space-y-4">
+                <!-- Analysis results will be displayed here -->
             </div>
-            <div class="glass-card p-6">
-                <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-emerald-600 mb-4">Career Phase Distribution</h3>
-                <canvas id="phaseChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Recommendations -->
-        <div class="glass-card p-6">
-            <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-emerald-600 mb-4">AI Recommendations</h3>
-            <div id="recommendations"></div>
         </div>
     </div>
 </div>

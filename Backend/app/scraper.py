@@ -89,14 +89,20 @@ class PlayerScraper:
             header = soup.select_one('div.data-header__profile-container')
             name = header.select_one('h1.data-header__headline-wrapper').text.strip() if header else 'Unknown'
             image_element = soup.select_one('img.data-header__profile-image')
-            image_url = image_element['src'] if image_element and 'src' in image_element.attrs else None
+            image_url = image_element['src'] if image_element else None
 
-            # Basic info
-            info = {
-                'Name': name,
-                'image_url': image_url
+            # Basic info dictionary - now directly in the main object
+            player_data = {
+                'givenUrl': url,
+                'id': player_id,
+                'url': url,
+                'type': 'player',
+                'Full name': name,  # Add name directly to main object
+                'image_url': image_url,  # Add image directly to main object
+                'careerStats': [],
+                'transfers': []
             }
-            
+
             # Get all info rows
             info_table = soup.select_one('table.info-table')
             if info_table:
@@ -106,7 +112,7 @@ class PlayerScraper:
                     value = row.select_one('td')
                     if label and value:
                         key = label.text.strip()
-                        info[key] = value.text.strip()
+                        player_data[key] = value.text.strip()  # Add directly to main object
 
             # Get career stats with more detail
             career_stats = []
@@ -133,7 +139,7 @@ class PlayerScraper:
             # Get market value
             market_value = soup.select_one('div.tm-player-market-value-development__current-value')
             if market_value:
-                info['Market value'] = market_value.text.strip()
+                player_data['Market value'] = market_value.text.strip()
 
             # Get transfers with more detail
             transfers = []
@@ -163,24 +169,12 @@ class PlayerScraper:
                     additional_stats[label.text.strip()] = value.text.strip()
 
             # Compile all data
-            player_data = {
-                'givenUrl': url,
-                'id': player_id,
-                'url': url,
-                'type': 'player',
-                'info': info,
-                'careerStats': career_stats,
-                'transfers': transfers,
-                'image_url': image_url,
-                'additionalStats': additional_stats
-            }
-            
-            logger.info(f"Scraped name: {name}")
-            logger.info(f"Scraped image URL: {image_url}")
+            player_data['careerStats'] = career_stats
+            player_data['transfers'] = transfers
+            player_data['additionalStats'] = additional_stats
 
-            # Cache the results
-            self.cache[player_id] = player_data
             logger.info(f"Successfully scraped data for player {name}")
+            logger.info(f"Image URL: {image_url}")  # Add this log to verify image URL
             
             return player_data
             

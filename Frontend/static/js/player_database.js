@@ -46,14 +46,19 @@ class PlayerDatabase {
     displaySearchResults(results) {
         this.hideLoading();
         this.hideError();
-        document.getElementById('playerCard').classList.add('hidden');
+        document.getElementById('playerCard')?.classList.add('hidden');
         
         const resultsContainer = document.getElementById('searchResults');
         const playersList = document.getElementById('playersList');
+        if (!resultsContainer || !playersList) return;
+
+        console.log('Search results:', results); // Debug log
+
         resultsContainer.classList.remove('hidden');
         playersList.innerHTML = '';
         
         results.forEach(player => {
+            console.log('Processing player:', player); // Debug log
             const card = this.createPlayerCard(player);
             playersList.appendChild(card);
         });
@@ -63,10 +68,10 @@ class PlayerDatabase {
         const card = document.createElement('div');
         card.className = 'bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition hover:scale-105';
         card.onclick = () => {
-            const highResImageUrl = player.image_url?.replace('/small/', '/big/');
+            // Store just name and image_url
             this.selectedPlayerCard = {
                 name: player.name,
-                image_url: highResImageUrl
+                image_url: player.image_url?.replace('/small/', '/big/')
             };
             this.loadPlayerDetails(player.id);
         };
@@ -102,6 +107,30 @@ class PlayerDatabase {
         return card;
     }
 
+    addToSquad(player) {
+        const selectedPlayersDiv = document.getElementById('selectedPlayers');
+        if (!selectedPlayersDiv) return;
+
+        // Create selected player card
+        const card = document.createElement('div');
+        card.className = 'selected-player-card bg-white rounded-lg shadow p-4 mb-2';
+        
+        card.innerHTML = `
+            <div class="flex justify-between items-center">
+                <span class="player-name font-semibold">${player.name || 'Unknown'}</span>
+                <button class="remove-from-squad text-red-500 hover:text-red-700">×</button>
+            </div>
+            <div class="text-sm text-gray-600 player-age">Age: ${player.age}</div>
+        `;
+
+        // Add event listener for removal
+        card.querySelector('.remove-from-squad').addEventListener('click', () => {
+            card.remove();
+        });
+
+        selectedPlayersDiv.appendChild(card);
+    }
+
     async loadPlayerDetails(playerId) {
         this.showLoading();
         try {
@@ -126,16 +155,13 @@ class PlayerDatabase {
         const playerCard = document.getElementById('playerCard');
         playerCard.classList.remove('hidden');
         
-        const name = this.selectedPlayerCard?.name || 'Unknown';
-        const imageUrl = this.selectedPlayerCard?.image_url || '/static/images/default-player.png';
+        // Use the stored name and image_url
+        const name = this.selectedPlayerCard?.name || player['Full name'] || 'Unknown';
+        const imageUrl = this.selectedPlayerCard?.image_url || player.image_url || '/static/images/default-player.png';
         
-        const careerStats = Array.isArray(player.careerStats) ? player.careerStats : [];
-        const mostRecentStats = careerStats.length > 0 ? careerStats[0] : {
-            Appearances: '0',
-            Goals: '0',
-            Assists: '0',
-            Minutes: '0'
-        };
+        // Get all career stats and info
+        const careerStats = player.careerStats || [];
+        const mostRecentStats = careerStats[0] || {}; // Get most recent stats
         
         playerCard.innerHTML = `
             <div class="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -143,7 +169,7 @@ class PlayerDatabase {
                     <div class="flex items-center space-x-6 mb-6">
                         <img src="${imageUrl}" 
                              alt="${name}" 
-                             class="w-24 h-24 rounded-full object-cover border-2 border-gray-200">
+                             class="w-24 h-24 rounded-full object-cover">
                         <div>
                             <h2 class="text-2xl font-bold">${name}</h2>
                             <p class="text-gray-600">${player['Current club'] || ''}</p>
@@ -273,6 +299,13 @@ class PlayerDatabase {
 
     hideError() {
         document.getElementById('errorState').classList.add('hidden');
+    }
+
+    _extractAge(dateString) {
+        if (!dateString) return null;
+        // Format: "Feb 5, 1985 (39)" -> extract 39
+        const ageMatch = dateString.match(/\((\d+)\)/);
+        return ageMatch ? ageMatch[1] : null;
     }
 }
 

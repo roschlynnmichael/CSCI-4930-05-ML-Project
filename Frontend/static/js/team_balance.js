@@ -70,6 +70,9 @@ async function addPlayer(playerId) {
         const response = await fetch(`${BACKEND_URL}/api/player/${playerId}`);
         const playerData = await response.json();
         
+        console.log('Player info object:', playerData.info);
+        console.log('Date of birth/age:', playerData.info?.['date_of_birth/age']);
+        
         if (!selectedPlayers.find(p => p.id === playerData.id)) {
             selectedPlayers.push(playerData);
             updateSelectedPlayersList();
@@ -108,13 +111,20 @@ function removePlayer(playerId) {
 }
 
 async function analyzeTeam() {
-    if (selectedPlayers.length === 0) {
-        alert('Please select players for analysis');
-        return;
-    }
-
     try {
-        const response = await fetch(`${BACKEND_URL}/api/analyze-team-balance`, {
+        const selectedPlayers = Array.from(document.querySelectorAll('#selectedPlayers .player-card'))
+            .map(card => ({
+                'Full name': card.querySelector('.player-name').textContent,
+                'Date of birth/Age': card.dataset.age || '',
+                // Add other relevant fields
+            }));
+
+        if (selectedPlayers.length === 0) {
+            alert('Please select players to analyze');
+            return;
+        }
+
+        const response = await fetch('http://127.0.0.1:8000/api/analyze-team-balance', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -122,12 +132,23 @@ async function analyzeTeam() {
             body: JSON.stringify(selectedPlayers)
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const analysis = await response.json();
         displayAnalysis(analysis);
     } catch (error) {
         console.error('Error analyzing team:', error);
-        alert('Error analyzing team balance');
+        alert('Error analyzing team. Please try again.');
     }
+}
+
+function extractAgeFromString(dateString) {
+    if (!dateString) return null;
+    // Match pattern like "Jun 24, 1987 (37)"
+    const ageMatch = dateString.match(/\((\d+)\)/);
+    return ageMatch ? parseInt(ageMatch[1]) : null;
 }
 
 function displayAnalysis(data) {
@@ -139,143 +160,48 @@ function displayAnalysis(data) {
     const analysis = data.analysis;
     document.getElementById('analysisResults').style.display = 'block';
     
-    // Display squad metrics
+    // Extract ages from the date_of_birth/age string in info object
+    const ages = selectedPlayers.map(player => {
+        console.log('Processing player:', player.name);
+        const dobString = player.info?.['date_of_birth/age'];
+        console.log('Date of birth string found:', dobString);
+        
+        // Try to extract age from the string
+        const age = extractAgeFromString(dobString);
+        console.log('Extracted age:', age);
+        return age;
+    });
+    
+    console.log('All extracted ages:', ages);
+    
+    // Filter out any null values and calculate metrics
+    const validAges = ages.filter(age => age !== null);
+    const averageAge = validAges.length 
+        ? (validAges.reduce((a, b) => a + b, 0) / validAges.length).toFixed(1) 
+        : 0;
+    const ageSpread = validAges.length 
+        ? (Math.max(...validAges) - Math.min(...validAges)).toFixed(1) 
+        : 0;
+
+    console.log('Valid ages:', validAges);
+    console.log('Average age:', averageAge);
+    console.log('Age spread:', ageSpread);
+
+    // Update the analysis with calculated age metrics
+    analysis.squad_metrics = {
+        ...analysis.squad_metrics,
+        average_age: averageAge,
+        age_spread: ageSpread
+    };
+    
     displaySquadMetrics(analysis.squad_metrics);
-    
-    // Display balance scores
     displayBalanceScores(analysis.balance_scores);
-    
-    // Display distributions
     displayDistributionCharts(analysis);
-    
-    // Display recommendations
     displayRecommendations(analysis.recommendations);
 }
 
-// ... (continue with display helper functions)
-function displaySquadMetrics(metrics) {
-    const metricsDiv = document.getElementById('squadMetrics');
-    metricsDiv.innerHTML = `
-        <div class="space-y-3">
-            ${Object.entries(metrics).map(([key, value]) => `
-                <div class="glass-card p-4 hover:scale-[1.02] transition-all duration-300">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">${formatMetricLabel(key)}</span>
-                        <span class="font-semibold ${getMetricValueClass(key, value)}">${value}</span>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-}
-
-function displayBalanceScores(scores) {
-    const scoresDiv = document.getElementById('balanceScores');
-    scoresDiv.innerHTML = `
-        <div class="space-y-4">
-            ${Object.entries(scores).map(([key, value]) => `
-                <div class="glass-card p-4">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-gray-600">${formatScoreLabel(key)}</span>
-                        <span class="font-semibold">${(value * 100).toFixed(1)}%</span>
-                    </div>
-                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="h-full ${getProgressBarClass(value)} transition-all duration-500"
-                             style="width: ${value * 100}%"></div>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-}
-
-function displayDistributionCharts(analysis) {
-    // Age Distribution Chart
-    const ageCtx = document.getElementById('ageChart').getContext('2d');
-    if (ageChart) ageChart.destroy();
-    
-    ageChart = new Chart(ageCtx, {
-        type: 'bar',
-        data: {
-            labels: ['U21', '21-25', '26-29', '30+'],
-            datasets: [{
-                label: 'Current',
-                data: Object.values(analysis.age_analysis.current),
-                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }, {
-                label: 'Ideal',
-                data: Object.values(analysis.age_analysis.gaps).map((gap, i) => 
-                    Object.values(analysis.age_analysis.current)[i] + gap),
-                type: 'line',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 2,
-                fill: false
-            }]
-        },
-        options: getChartOptions('Age Distribution')
-    });
-
-    // Phase Distribution Chart
-    const phaseCtx = document.getElementById('phaseChart').getContext('2d');
-    if (phaseChart) phaseChart.destroy();
-    
-    phaseChart = new Chart(phaseCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Breakthrough', 'Development', 'Peak', 'Twilight'],
-            datasets: [{
-                label: 'Current',
-                data: Object.values(analysis.phase_analysis.current),
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }, {
-                label: 'Ideal',
-                data: Object.values(analysis.phase_analysis.gaps).map((gap, i) => 
-                    Object.values(analysis.phase_analysis.current)[i] + gap),
-                type: 'line',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 2,
-                fill: false
-            }]
-        },
-        options: getChartOptions('Career Phase Distribution')
-    });
-}
-
-function displayRecommendations(recommendations) {
-    const recsDiv = document.getElementById('recommendations');
-    if (recommendations.length === 0) {
-        recsDiv.innerHTML = `
-            <div class="glass-card p-4 bg-emerald-50">
-                <div class="flex items-center text-emerald-700">
-                    <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    No immediate actions required
-                </div>
-            </div>
-        `;
-        return;
-    }
-
-    recsDiv.innerHTML = `
-        <div class="space-y-3">
-            ${recommendations.map(rec => `
-                <div class="glass-card p-4 hover:scale-[1.02] transition-all duration-300">
-                    <div class="flex items-start">
-                        <svg class="h-5 w-5 mr-3 text-indigo-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                        <span class="text-gray-700">${rec}</span>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-}
+// Add event listener to analyze button
+document.getElementById('analyzeTeam').addEventListener('click', analyzeTeam);
 
 // Helper functions
 function getMetricValueClass(key, value) {

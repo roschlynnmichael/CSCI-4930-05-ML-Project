@@ -46,13 +46,15 @@ class TeamBalanceOptimizer:
         """Main function to analyze squad balance"""
         try:
             # Prepare the data
-            analysis_data = team_data.copy()
+            analysis_data = pd.DataFrame()
             
-            # Extract name and age
-            analysis_data['Name'] = team_data['name']
-            analysis_data['Age'] = pd.to_numeric(team_data['info'].apply(
-                lambda x: x.get('age', 0) if x else 0
-            ))
+            # Extract name and age from scraped data
+            if 'Name' in team_data.columns:  # For test data
+                analysis_data['Name'] = team_data['Name']
+                analysis_data['Age'] = team_data['Age']
+            else:  # For scraped data
+                analysis_data['Name'] = team_data.apply(lambda x: x.get('Full name', x.get('Name', 'Unknown')), axis=1)
+                analysis_data['Age'] = team_data.apply(lambda x: self._extract_age(x.get('Date of birth/Age', '')), axis=1)
             
             # Determine career phase based on age
             analysis_data['Career_Phase'] = analysis_data['Age'].apply(self._determine_career_phase)
@@ -225,3 +227,24 @@ class TeamBalanceOptimizer:
         # Sort by absolute gap size
         priorities.sort(key=lambda x: abs(x['gap']), reverse=True)
         return priorities
+
+    def _extract_age(self, age_string: str) -> int:
+        """Extract age from the scraped age string format"""
+        try:
+            # Handle different age string formats
+            if not age_string:
+                return 0
+            
+            # Format: "Feb 5, 1985 (39)" -> extract 39
+            if '(' in age_string:
+                age = age_string.split('(')[1].replace(')', '')
+                return int(age)
+            
+            # If it's already a number
+            if str(age_string).isdigit():
+                return int(age_string)
+            
+            return 0
+        except Exception as e:
+            self.logger.error(f"Error extracting age from {age_string}: {str(e)}")
+            return 0
