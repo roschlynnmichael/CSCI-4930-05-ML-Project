@@ -3,20 +3,85 @@
 {% block title %}Error 404{% endblock %}
 
 {% block content %}
-<div class="min-h-[70vh] flex flex-col items-center justify-center">
-    <lottie-player
-        src="{{ url_for('static', filename='animations/error.json') }}"
-        background="transparent"
-        speed="1"
-        style="width: 300px; height: 300px;"
-        loop
-        autoplay>
-    </lottie-player>
-    
-    <h1 class="text-4xl font-bold text-gray-800 mt-8">Oops!</h1>
-    <p class="text-gray-600 mt-4">The page you're looking for doesn't exist.</p>
-    <a href="{{ url_for('home') }}" class="mt-8 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-        Go Home
-    </a>
+<div class="min-h-[80vh] flex flex-col items-center justify-center px-4">
+    <div class="glass-card p-8 max-w-lg w-full text-center relative overflow-hidden"
+         data-aos="fade-up" 
+         data-aos-duration="1000">
+        <!-- Background gradient effect -->
+        <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-50 to-red-50 opacity-50"></div>
+        
+        <div class="relative">
+            <div class="relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-100 to-red-100 rounded-full blur-2xl opacity-30 animate-pulse"></div>
+                <lottie-player
+                    src="{{ url_for('static', filename='animations/error.json') }}"
+                    background="transparent"
+                    speed="1"
+                    style="width: 250px; height: 250px; margin: 0 auto;"
+                    loop
+                    autoplay>
+                </lottie-player>
+            </div>
+            
+            <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-red-600 mt-8">
+                Oops! Page Not Found
+            </h1>
+            
+            <p class="text-gray-600 mt-4 text-lg" id="errorMessage">
+                <!-- JavaScript will randomly select one of these messages -->
+            </p>
+            
+            <a href="{{ url_for('home') }}" 
+               class="inline-flex items-center px-6 py-3 mt-8 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 hover:-translate-y-0.5 shadow-lg hover:shadow-xl">
+                Take Me Home
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+            </a>
+        </div>
+    </div>
 </div>
+
+<script>
+    // Array of funny error messages
+    const errorMessages = [
+        "Looks like this page took a vacation without telling us! 🏖️",
+        "Houston, we have a problem... This page is playing hide and seek! 🚀",
+        "404: Page got subbed out of the game! 🏃‍♂️",
+        "This page must be training with another team... 🏋️‍♂️",
+        "Whoops! This page is doing extra laps around the field! 🏃‍♀️",
+        "Technical foul! Page not found! 🏀",
+        "This page is still in the locker room... 🚪",
+        "Game delayed: Page not showing up on the field! ⚽",
+        "Looks like this page got traded to another server! 📝",
+        "This page is taking a strategic timeout! ⏰"
+    ];
+
+    // Function to randomly select and display an error message
+    function setRandomErrorMessage() {
+        const messageElement = document.getElementById('errorMessage');
+        const randomIndex = Math.floor(Math.random() * errorMessages.length);
+        messageElement.textContent = errorMessages[randomIndex];
+        
+        // Add fade-in animation
+        messageElement.classList.add('fade-in');
+    }
+
+    // Set initial message
+    setRandomErrorMessage();
+
+    // Optionally, change message every 5 seconds
+    setInterval(setRandomErrorMessage, 5000);
+</script>
+
+<style>
+    @keyframes messageFade {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+        animation: messageFade 0.5s ease-out;
+    }
+</style>
 {% endblock %}

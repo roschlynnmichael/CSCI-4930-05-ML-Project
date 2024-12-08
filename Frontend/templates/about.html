@@ -4,60 +4,78 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-12">
-    <div class="text-center mb-12">
-        <lottie-player
-            src="{{ url_for('static', filename='animations/about.json') }}"
-            background="transparent"
-            speed="1"
-            style="width: 250px; height: 250px; margin: 0 auto;"
-            loop
-            autoplay>
-        </lottie-player>
-        <h1 class="text-4xl font-bold text-gray-900 mt-8">About Us</h1>
-        <p class="mt-4 text-xl text-gray-600">Learn more about our story</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-        <!-- Vision -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
+    <div class="text-center mb-12" data-aos="fade-up" data-aos-duration="1000">
+        <div class="relative">
+            <div class="absolute inset-0 bg-gradient-to-r from-indigo-100 to-emerald-100 rounded-full blur-3xl opacity-30 animate-pulse"></div>
             <lottie-player
-                src="{{ url_for('static', filename='animations/vision.json') }}"
+                src="{{ url_for('static', filename='animations/about.json') }}"
                 background="transparent"
                 speed="1"
-                style="width: 100px; height: 100px; margin: 0 auto;"
+                style="width: 250px; height: 250px; margin: 0 auto;"
                 loop
                 autoplay>
             </lottie-player>
-            <h3 class="text-xl font-bold text-center mt-4">Our Vision</h3>
-            <p class="text-gray-600 mt-2 text-center">To revolutionize the way people interact with technology</p>
+        </div>
+        <h1 class="text-5xl font-bold mt-8 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-emerald-600">About Us</h1>
+        <p class="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">Building the future of intelligent sports team management</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+        <!-- Vision -->
+        <div class="group bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+             data-aos="fade-up"
+             data-aos-delay="200">
+            <div class="relative">
+                <div class="absolute inset-0 bg-indigo-100 rounded-full blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <lottie-player
+                    src="{{ url_for('static', filename='animations/vision.json') }}"
+                    background="transparent"
+                    speed="1"
+                    style="width: 120px; height: 120px; margin: 0 auto;"
+                    loop
+                    autoplay>
+                </lottie-player>
+            </div>
+            <h3 class="text-2xl font-bold text-center mt-6 text-indigo-600">Our Vision</h3>
+            <p class="text-gray-600 mt-4 text-center leading-relaxed">To transform sports team management through data-driven decision making and AI-powered insights</p>
         </div>
 
         <!-- Mission -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <lottie-player
-                src="{{ url_for('static', filename='animations/mission.json') }}"
-                background="transparent"
-                speed="1"
-                style="width: 100px; height: 100px; margin: 0 auto;"
-                loop
-                autoplay>
-            </lottie-player>
-            <h3 class="text-xl font-bold text-center mt-4">Our Mission</h3>
-            <p class="text-gray-600 mt-2 text-center">Providing innovative solutions for tomorrow's challenges</p>
+        <div class="group bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+             data-aos="fade-up"
+             data-aos-delay="400">
+            <div class="relative">
+                <div class="absolute inset-0 bg-emerald-100 rounded-full blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <lottie-player
+                    src="{{ url_for('static', filename='animations/mission.json') }}"
+                    background="transparent"
+                    speed="1"
+                    style="width: 120px; height: 120px; margin: 0 auto;"
+                    loop
+                    autoplay>
+                </lottie-player>
+            </div>
+            <h3 class="text-2xl font-bold text-center mt-6 text-emerald-600">Our Mission</h3>
+            <p class="text-gray-600 mt-4 text-center leading-relaxed">Empowering teams to build balanced rosters through advanced analytics and machine learning</p>
         </div>
 
         <!-- Values -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <lottie-player
-                src="{{ url_for('static', filename='animations/values.json') }}"
-                background="transparent"
-                speed="1"
-                style="width: 100px; height: 100px; margin: 0 auto;"
-                loop
-                autoplay>
-            </lottie-player>
-            <h3 class="text-xl font-bold text-center mt-4">Our Values</h3>
-            <p class="text-gray-600 mt-2 text-center">Integrity, Innovation, and Excellence in everything we do</p>
+        <div class="group bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+             data-aos="fade-up"
+             data-aos-delay="600">
+            <div class="relative">
+                <div class="absolute inset-0 bg-purple-100 rounded-full blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <lottie-player
+                    src="{{ url_for('static', filename='animations/values.json') }}"
+                    background="transparent"
+                    speed="1"
+                    style="width: 120px; height: 120px; margin: 0 auto;"
+                    loop
+                    autoplay>
+                </lottie-player>
+            </div>
+            <h3 class="text-2xl font-bold text-center mt-6 text-purple-600">Our Values</h3>
+            <p class="text-gray-600 mt-4 text-center leading-relaxed">Innovation in analytics, accuracy in predictions, and excellence in talent development</p>
         </div>
     </div>
 </div>

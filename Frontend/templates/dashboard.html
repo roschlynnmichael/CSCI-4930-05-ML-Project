@@ -4,65 +4,75 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-12">
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <div class="flex items-center space-x-4">
-            <lottie-player
-                src="{{ url_for('static', filename='animations/welcome.json') }}"
-                background="transparent"
-                speed="1"
-                style="width: 64px; height: 64px;"
-                loop
-                autoplay>
-            </lottie-player>
-            <h1 class="text-3xl font-bold">Welcome Back!</h1>
+    <div class="glass-card p-8">
+        <div class="flex items-center space-x-4 mb-8" data-aos="fade-right" data-aos-duration="1000">
+            <div class="relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-100 to-emerald-100 rounded-full blur-xl opacity-30 animate-pulse"></div>
+                <lottie-player
+                    src="{{ url_for('static', filename='animations/welcome.json') }}"
+                    background="transparent"
+                    speed="1"
+                    style="width: 80px; height: 80px;"
+                    loop
+                    autoplay>
+                </lottie-player>
+            </div>
+            <div>
+                <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-emerald-600">Welcome Back!</h1>
+                <p class="text-gray-600 mt-2">Access your team management tools below</p>
+            </div>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <!-- Dashboard Card -->
-            <div class="bg-indigo-50 p-6 rounded-lg">
-                <lottie-player
-                    src="{{ url_for('static', filename='animations/logo.json') }}"
-                    background="transparent"
-                    speed="1"
-                    style="width: 48px; height: 48px;"
-                    loop
-                    autoplay>
-                </lottie-player>
-                <h3 class="text-xl font-semibold mt-4">Statistics</h3>
-                <p class="text-gray-600 mt-2">View your activity stats</p>
-            </div>
-            
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
             <!-- Player Database Card -->
-            <div class="bg-indigo-50 p-6 rounded-lg">
-                <lottie-player
-                    src="{{ url_for('static', filename='animations/search.json') }}"
-                    background="transparent"
-                    speed="1"
-                    style="width: 48px; height: 48px;"
-                    loop
-                    autoplay>
-                </lottie-player>
-                <h3 class="text-xl font-semibold mt-4">Player Database</h3>
-                <p class="text-gray-600 mt-2">Search and analyze players</p>
-                <a href="{{ url_for('player_database') }}" class="btn-primary mt-4">
+            <div class="glass-card p-8 hover:scale-[1.02] transition-all duration-300" 
+                 data-aos="fade-up" 
+                 data-aos-delay="200">
+                <div class="relative mb-4">
+                    <div class="absolute inset-0 bg-indigo-100 rounded-full blur-xl opacity-30 animate-pulse"></div>
+                    <lottie-player
+                        src="{{ url_for('static', filename='animations/search.json') }}"
+                        background="transparent"
+                        speed="1"
+                        style="width: 64px; height: 64px;"
+                        loop
+                        autoplay>
+                    </lottie-player>
+                </div>
+                <h3 class="text-2xl font-bold text-indigo-600">Player Database</h3>
+                <p class="text-gray-600 mt-2 mb-6">Search, analyze, and discover players that match your team's needs. Access comprehensive player statistics and performance metrics.</p>
+                <a href="{{ url_for('player_database') }}" 
+                   class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 hover:-translate-y-0.5 shadow-lg hover:shadow-xl">
                     Open Database
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
                 </a>
             </div>
 
             <!-- Team Balance Card -->
-            <div class="bg-indigo-50 p-6 rounded-lg">
-                <lottie-player
-                    src="{{ url_for('static', filename='animations/balance.json') }}"
-                    background="transparent"
-                    speed="1"
-                    style="width: 48px; height: 48px;"
-                    loop
-                    autoplay>
-                </lottie-player>
-                <h3 class="text-xl font-semibold mt-4">Team Balance</h3>
-                <p class="text-gray-600 mt-2">Analyze squad composition and balance</p>
-                <a href="{{ url_for('team_balance') }}" class="btn-primary mt-4">
+            <div class="glass-card p-8 hover:scale-[1.02] transition-all duration-300" 
+                 data-aos="fade-up" 
+                 data-aos-delay="400">
+                <div class="relative mb-4">
+                    <div class="absolute inset-0 bg-emerald-100 rounded-full blur-xl opacity-30 animate-pulse"></div>
+                    <lottie-player
+                        src="{{ url_for('static', filename='animations/balance.json') }}"
+                        background="transparent"
+                        speed="1"
+                        style="width: 64px; height: 64px;"
+                        loop
+                        autoplay>
+                    </lottie-player>
+                </div>
+                <h3 class="text-2xl font-bold text-emerald-600">Team Balance</h3>
+                <p class="text-gray-600 mt-2 mb-6">Analyze your squad composition, age distribution, and get AI-powered recommendations for optimal team balance.</p>
+                <a href="{{ url_for('team_balance') }}" 
+                   class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 hover:-translate-y-0.5 shadow-lg hover:shadow-xl">
                     Analyze Team
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
                 </a>
             </div>
         </div>

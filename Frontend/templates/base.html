@@ -3,20 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %} - Your Site</title>
-    <!-- Tailwind CSS -->
+    <title>{% block title %}{% endblock %} - Team Talent Analytics</title>
+    <!-- Add modern CSS libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lottie Player -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    <!-- Custom CSS -->
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #4f46e5;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-primary {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-gray-50">
-    <!-- Navbar -->
-    <nav class="bg-white shadow-lg">
+<body class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+    <!-- Navbar with glass effect -->
+    <nav class="backdrop-blur-md bg-white/80 fixed w-full z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="{{ url_for('home') }}" class="flex items-center">
+                    <a href="{{ url_for('home') }}" class="flex items-center group">
                         <lottie-player
                             src="https://assets5.lottiefiles.com/packages/lf20_kkflmtur.json"
                             background="transparent"
@@ -25,36 +63,34 @@
                             loop
                             autoplay>
                         </lottie-player>
-                        <span class="ml-2 text-xl font-bold">Your Brand</span>
+                        <span class="ml-2 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-emerald-600">TeamTalent Analytics</span>
                     </a>
                 </div>
                 
-                <div class="flex items-center space-x-4">
-                    <a href="{{ url_for('login') }}" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Login</a>
-                    <a href="{{ url_for('register') }}" class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Register</a>
-                    <a href="{{ url_for('about') }}" class="text-gray-600 hover:text-gray-900">About</a>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('team_balance') }}">
-                            <i class="fas fa-balance-scale"></i> Team Balance
-                        </a>
-                    </li>
+                <div class="flex items-center space-x-6">
+                    <a href="{{ url_for('login') }}" class="btn-primary px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn-primary px-6 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg">Register</a>
+                    <a href="{{ url_for('about') }}" class="nav-link text-gray-600 hover:text-gray-900">About</a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Content -->
-    <main>
+    <!-- Content with padding for fixed navbar -->
+    <main class="pt-16 flex-grow">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white mt-auto">
+    <!-- Footer with gradient -->
+    <footer class="bg-gradient-to-b from-white to-gray-50">
         <div class="max-w-7xl mx-auto py-6 px-4">
-            <p class="text-center text-gray-600">© 2024 Your Brand. All rights reserved.</p>
+            <p class="text-center text-gray-600">© 2024 TeamTalent Analytics. All rights reserved.</p>
         </div>
     </footer>
 
     {% block scripts %}{% endblock %}
+    <script>
+        AOS.init();
+    </script>
 </body>
 </html>

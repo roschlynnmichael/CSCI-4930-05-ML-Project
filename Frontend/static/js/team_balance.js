@@ -48,12 +48,17 @@ function displaySearchResults(results) {
 
     results.forEach(player => {
         const playerDiv = document.createElement('div');
-        playerDiv.className = 'player-result p-2 border-bottom';
+        playerDiv.className = 'glass-card p-3 hover:scale-[1.02] transition-all duration-300';
         playerDiv.innerHTML = `
-            <div class="d-flex align-items-center">
-                <img src="${player.image_url}" class="mr-2" style="width: 30px; height: 30px;">
-                <span>${player.name}</span>
-                <button class="btn btn-sm btn-primary ml-auto" onclick="addPlayer('${player.id}')">Add</button>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <img src="${player.image_url}" class="w-10 h-10 rounded-full object-cover" alt="${player.name}">
+                    <span class="font-medium text-gray-800">${player.name}</span>
+                </div>
+                <button onclick="addPlayer('${player.id}')" 
+                        class="px-3 py-1 bg-gradient-to-r from-indigo-600 to-emerald-600 text-white rounded-lg hover:from-indigo-700 hover:to-emerald-700 transition-all duration-300">
+                    Add
+                </button>
             </div>
         `;
         resultsDiv.appendChild(playerDiv);
@@ -80,13 +85,18 @@ function updateSelectedPlayersList() {
 
     selectedPlayers.forEach(player => {
         const playerDiv = document.createElement('div');
-        playerDiv.className = 'list-group-item d-flex justify-content-between align-items-center';
+        playerDiv.className = 'glass-card p-3 hover:scale-[1.02] transition-all duration-300';
         playerDiv.innerHTML = `
-            <div>
-                <img src="${player.image_url}" style="width: 30px; height: 30px;">
-                ${player.name}
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <img src="${player.image_url}" class="w-10 h-10 rounded-full object-cover" alt="${player.name}">
+                    <span class="font-medium text-gray-800">${player.name}</span>
+                </div>
+                <button onclick="removePlayer('${player.id}')" 
+                        class="px-3 py-1 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300">
+                    Remove
+                </button>
             </div>
-            <button class="btn btn-sm btn-danger" onclick="removePlayer('${player.id}')">Remove</button>
         `;
         selectedPlayersDiv.appendChild(playerDiv);
     });
@@ -146,23 +156,15 @@ function displayAnalysis(data) {
 function displaySquadMetrics(metrics) {
     const metricsDiv = document.getElementById('squadMetrics');
     metricsDiv.innerHTML = `
-        <div class="list-group">
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <span>Total Players</span>
-                <span class="badge bg-primary rounded-pill">${metrics.total_players}</span>
-            </div>
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <span>Average Age</span>
-                <span class="badge bg-primary rounded-pill">${metrics.average_age}</span>
-            </div>
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <span>Age Spread</span>
-                <span class="badge bg-primary rounded-pill">${metrics.age_spread}</span>
-            </div>
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <span>Squad Size Status</span>
-                <span class="badge ${getStatusBadgeClass(metrics.squad_size_status)}">${metrics.squad_size_status}</span>
-            </div>
+        <div class="space-y-3">
+            ${Object.entries(metrics).map(([key, value]) => `
+                <div class="glass-card p-4 hover:scale-[1.02] transition-all duration-300">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">${formatMetricLabel(key)}</span>
+                        <span class="font-semibold ${getMetricValueClass(key, value)}">${value}</span>
+                    </div>
+                </div>
+            `).join('')}
         </div>
     `;
 }
@@ -170,43 +172,19 @@ function displaySquadMetrics(metrics) {
 function displayBalanceScores(scores) {
     const scoresDiv = document.getElementById('balanceScores');
     scoresDiv.innerHTML = `
-        <div class="list-group">
-            <div class="list-group-item">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span>Age Balance</span>
-                    <span>${(scores.age_balance * 100).toFixed(1)}%</span>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar ${getProgressBarClass(scores.age_balance)}" 
-                         role="progressbar" 
-                         style="width: ${scores.age_balance * 100}%">
+        <div class="space-y-4">
+            ${Object.entries(scores).map(([key, value]) => `
+                <div class="glass-card p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600">${formatScoreLabel(key)}</span>
+                        <span class="font-semibold">${(value * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full ${getProgressBarClass(value)} transition-all duration-500"
+                             style="width: ${value * 100}%"></div>
                     </div>
                 </div>
-            </div>
-            <div class="list-group-item">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span>Phase Balance</span>
-                    <span>${(scores.phase_balance * 100).toFixed(1)}%</span>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar ${getProgressBarClass(scores.phase_balance)}" 
-                         role="progressbar" 
-                         style="width: ${scores.phase_balance * 100}%">
-                    </div>
-                </div>
-            </div>
-            <div class="list-group-item">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span>Overall Balance</span>
-                    <span>${(scores.overall_balance * 100).toFixed(1)}%</span>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar ${getProgressBarClass(scores.overall_balance)}" 
-                         role="progressbar" 
-                         style="width: ${scores.overall_balance * 100}%">
-                    </div>
-                </div>
-            </div>
+            `).join('')}
         </div>
     `;
 }
@@ -270,33 +248,54 @@ function displayDistributionCharts(analysis) {
 function displayRecommendations(recommendations) {
     const recsDiv = document.getElementById('recommendations');
     if (recommendations.length === 0) {
-        recsDiv.innerHTML = '<div class="alert alert-success">No immediate actions required.</div>';
+        recsDiv.innerHTML = `
+            <div class="glass-card p-4 bg-emerald-50">
+                <div class="flex items-center text-emerald-700">
+                    <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    No immediate actions required
+                </div>
+            </div>
+        `;
         return;
     }
 
     recsDiv.innerHTML = `
-        <ul class="list-group">
+        <div class="space-y-3">
             ${recommendations.map(rec => `
-                <li class="list-group-item">
-                    <i class="fas fa-info-circle text-primary me-2"></i>
-                    ${rec}
-                </li>
+                <div class="glass-card p-4 hover:scale-[1.02] transition-all duration-300">
+                    <div class="flex items-start">
+                        <svg class="h-5 w-5 mr-3 text-indigo-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-gray-700">${rec}</span>
+                    </div>
+                </div>
             `).join('')}
-        </ul>
+        </div>
     `;
 }
 
 // Helper functions
-function getStatusBadgeClass(status) {
-    if (status.includes('Optimal')) return 'bg-success';
-    if (status.includes('too small')) return 'bg-warning';
-    return 'bg-danger';
+function getMetricValueClass(key, value) {
+    if (value.includes && value.includes('Optimal')) return 'text-emerald-600';
+    if (key === 'squad_size_status' && value.includes('small')) return 'text-amber-600';
+    return 'text-indigo-600';
+}
+
+function formatMetricLabel(key) {
+    return key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+function formatScoreLabel(key) {
+    return key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
 function getProgressBarClass(score) {
-    if (score >= 0.8) return 'bg-success';
-    if (score >= 0.6) return 'bg-warning';
-    return 'bg-danger';
+    if (score >= 0.8) return 'bg-gradient-to-r from-emerald-500 to-emerald-600';
+    if (score >= 0.6) return 'bg-gradient-to-r from-amber-500 to-amber-600';
+    return 'bg-gradient-to-r from-red-500 to-red-600';
 }
 
 function getChartOptions(title) {
@@ -305,18 +304,46 @@ function getChartOptions(title) {
         plugins: {
             legend: {
                 position: 'top',
+                labels: {
+                    font: {
+                        family: "'Inter', sans-serif",
+                        size: 12
+                    },
+                    padding: 20
+                }
             },
             title: {
                 display: true,
-                text: title
+                text: title,
+                font: {
+                    family: "'Inter', sans-serif",
+                    size: 16,
+                    weight: 'bold'
+                },
+                padding: {
+                    bottom: 20
+                }
             }
         },
         scales: {
             y: {
                 beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
                 ticks: {
-                    format: {
-                        style: 'percent'
+                    font: {
+                        family: "'Inter', sans-serif"
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    font: {
+                        family: "'Inter', sans-serif"
                     }
                 }
             }
