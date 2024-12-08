@@ -3,12 +3,10 @@ import numpy as np
 from typing import Dict, List
 import logging
 from pathlib import Path
-from .roster_analyzer import RosterAnalyzer
 
 class TeamBalanceOptimizer:
     def __init__(self):
         self._setup_logging()
-        self.roster_analyzer = RosterAnalyzer()
         
         # Define ideal team composition
         self.ideal_composition = {
@@ -31,17 +29,6 @@ class TeamBalanceOptimizer:
             }
         }
 
-    def _setup_logging(self):
-        log_dir = Path('app/logs')
-        log_dir.mkdir(parents=True, exist_ok=True)
-        
-        logging.basicConfig(
-            filename=log_dir / 'team_balance.log',
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s'
-        )
-        self.logger = logging.getLogger(__name__)
-
     def analyze_squad_balance(self, team_data: pd.DataFrame) -> Dict:
         """Main function to analyze squad balance"""
         try:
@@ -49,24 +36,16 @@ class TeamBalanceOptimizer:
             analysis_data = pd.DataFrame()
             
             # Extract name and age from scraped data
-            if 'Name' in team_data.columns:  # For test data
-                analysis_data['Name'] = team_data['Name']
-                analysis_data['Age'] = team_data['Age']
-            else:  # For scraped data
-                analysis_data['Name'] = team_data.apply(lambda x: x.get('Full name', x.get('Name', 'Unknown')), axis=1)
-                analysis_data['Age'] = team_data.apply(lambda x: self._extract_age(x.get('Date of birth/Age', '')), axis=1)
+            analysis_data['Name'] = team_data.apply(lambda x: x.get('name', 'Unknown'), axis=1)
+            analysis_data['Age'] = team_data.apply(lambda x: self._extract_age(x.get('Date of birth/Age', x.get('age', ''))), axis=1)
             
             # Determine career phase based on age
             analysis_data['Career_Phase'] = analysis_data['Age'].apply(self._determine_career_phase)
             
-            # Calculate basic squad metrics
+            # Calculate metrics
             squad_metrics = self._analyze_squad_metrics(analysis_data)
-            
-            # Analyze distributions
             age_analysis = self._analyze_age_distribution(analysis_data)
             phase_analysis = self._analyze_phase_distribution(analysis_data)
-            
-            # Calculate balance scores
             balance_scores = self._calculate_balance_scores(analysis_data)
             
             # Generate recommendations
@@ -89,85 +68,90 @@ class TeamBalanceOptimizer:
             self.logger.error(f"Error in squad balance analysis: {str(e)}")
             raise
 
-    def _determine_career_phase(self, age: float) -> str:
-        """Determine career phase based on age"""
-        if age < 21:
-            return 'breakthrough'
-        elif age < 24:
-            return 'development'
-        elif age < 30:
-            return 'peak'
-        else:
-            return 'twilight'
-
     def _analyze_squad_metrics(self, data: pd.DataFrame) -> Dict:
-        """Analyze basic squad metrics"""
+        """Calculate basic squad metrics"""
         total_players = len(data)
         average_age = data['Age'].mean()
-        age_spread = data['Age'].std()
         
         return {
             'total_players': total_players,
             'average_age': round(average_age, 1),
-            'age_spread': round(age_spread, 1),
             'squad_size_status': self._evaluate_squad_size(total_players)
         }
 
     def _analyze_age_distribution(self, data: pd.DataFrame) -> Dict:
-        """Analyze age distribution"""
-        total = len(data)
-        if total == 0:
-            return {'current': {}, 'gaps': {}, 'balance_score': 0}
-        
-        current_dist = {
-            'u21': len(data[data['Age'] < 21]) / total,
-            '21_25': len(data[(data['Age'] >= 21) & (data['Age'] <= 25)]) / total,
-            '26_29': len(data[(data['Age'] >= 26) & (data['Age'] <= 29)]) / total,
-            '30_plus': len(data[data['Age'] >= 30]) / total
+        """Analyze age distribution of the squad"""
+        age_groups = {
+            'u21': len(data[data['Age'] < 21]) / len(data),
+            '21_25': len(data[(data['Age'] >= 21) & (data['Age'] <= 25)]) / len(data),
+            '26_29': len(data[(data['Age'] >= 26) & (data['Age'] <= 29)]) / len(data),
+            '30_plus': len(data[data['Age'] >= 30]) / len(data)
         }
         
-        gaps = {
-            age_group: self.ideal_composition['age_distribution'][age_group] - current_dist[age_group]
-            for age_group in self.ideal_composition['age_distribution']
-        }
+        # Calculate balance score
+        balance_score = self._calculate_distribution_score(
+            age_groups, 
+            self.ideal_composition['age_distribution']
+        )
+        
+        # Calculate gaps
+        gaps = {k: self.ideal_composition['age_distribution'][k] - v 
+               for k, v in age_groups.items()}
         
         return {
-            'current': current_dist,
-            'gaps': gaps,
-            'balance_score': self._calculate_distribution_score(
-                current_dist, 
-                self.ideal_composition['age_distribution']
-            )
+            'current': age_groups,
+            'ideal': self.ideal_composition['age_distribution'],
+            'balance_score': balance_score,
+            'gaps': gaps
         }
 
     def _analyze_phase_distribution(self, data: pd.DataFrame) -> Dict:
         """Analyze career phase distribution"""
-        current_dist = data['Career_Phase'].value_counts(normalize=True).to_dict()
+        phase_counts = data['Career_Phase'].value_counts()
+        total = len(data)
         
-        # Ensure all phases are represented
-        for phase in self.ideal_composition['phase_distribution']:
-            if phase not in current_dist:
-                current_dist[phase] = 0.0
-        
-        gaps = {
-            phase: self.ideal_composition['phase_distribution'][phase] - current_dist.get(phase, 0)
-            for phase in self.ideal_composition['phase_distribution']
+        phase_distribution = {
+            'breakthrough': len(data[data['Career_Phase'] == 'breakthrough']) / total,
+            'development': len(data[data['Career_Phase'] == 'development']) / total,
+            'peak': len(data[data['Career_Phase'] == 'peak']) / total,
+            'twilight': len(data[data['Career_Phase'] == 'twilight']) / total
         }
+        
+        balance_score = self._calculate_distribution_score(
+            phase_distribution,
+            self.ideal_composition['phase_distribution']
+        )
+        
+        gaps = {k: self.ideal_composition['phase_distribution'][k] - v 
+               for k, v in phase_distribution.items()}
         
         return {
-            'current': current_dist,
-            'gaps': gaps,
-            'balance_score': self._calculate_distribution_score(current_dist, 
-                                                             self.ideal_composition['phase_distribution'])
+            'current': phase_distribution,
+            'ideal': self.ideal_composition['phase_distribution'],
+            'balance_score': balance_score,
+            'gaps': gaps
         }
+
+    def _determine_career_phase(self, age: int) -> str:
+        """Determine player's career phase based on age"""
+        if age < 21:
+            return 'breakthrough'
+        elif age <= 24:
+            return 'development'
+        elif age <= 29:
+            return 'peak'
+        else:
+            return 'twilight'
 
     def _calculate_balance_scores(self, data: pd.DataFrame) -> Dict:
         """Calculate overall balance scores"""
+        age_analysis = self._analyze_age_distribution(data)
+        phase_analysis = self._analyze_phase_distribution(data)
+        
         return {
-            'age_balance': self._analyze_age_distribution(data)['balance_score'],
-            'phase_balance': self._analyze_phase_distribution(data)['balance_score'],
-            'overall_balance': (self._analyze_age_distribution(data)['balance_score'] + 
-                              self._analyze_phase_distribution(data)['balance_score']) / 2
+            'age_balance': age_analysis['balance_score'],
+            'phase_balance': phase_analysis['balance_score'],
+            'overall_balance': (age_analysis['balance_score'] + phase_analysis['balance_score']) / 2
         }
 
     def _calculate_distribution_score(self, current: Dict, ideal: Dict) -> float:
@@ -175,72 +159,50 @@ class TeamBalanceOptimizer:
         differences = [abs(ideal[k] - current.get(k, 0)) for k in ideal]
         return 1 - sum(differences) / 2  # Convert to 0-1 score
 
-    def _evaluate_squad_size(self, size: int) -> str:
-        """Evaluate if squad size is optimal"""
-        if size < self.ideal_composition['squad_size']['min']:
-            return f"Squad too small (need {self.ideal_composition['squad_size']['min'] - size} more players)"
-        elif size > self.ideal_composition['squad_size']['max']:
-            return f"Squad too large (reduce by {size - self.ideal_composition['squad_size']['max']} players)"
-        return "Optimal squad size"
-
     def _generate_recommendations(self, analysis: Dict) -> List[str]:
         """Generate specific recommendations based on analysis"""
         recommendations = []
         
         # Squad size recommendations
-        if analysis['squad_metrics']['squad_size_status'] != "Optimal squad size":
-            recommendations.append(analysis['squad_metrics']['squad_size_status'])
+        squad_size = analysis['squad_metrics']['total_players']
+        if squad_size < self.ideal_composition['squad_size']['min']:
+            recommendations.append(f"Need {self.ideal_composition['squad_size']['min'] - squad_size} more players")
+        elif squad_size > self.ideal_composition['squad_size']['max']:
+            recommendations.append(f"Squad too large by {squad_size - self.ideal_composition['squad_size']['max']} players")
         
         # Age balance recommendations
         for age_group, gap in analysis['age_analysis']['gaps'].items():
             if abs(gap) > 0.1:  # 10% threshold
                 if gap > 0:
-                    recommendations.append(f"Need more {age_group} players (deficit: {gap:.1%})")
+                    recommendations.append(f"Need more {age_group.replace('_', '-')} players (+{gap:.0%})")
                 else:
-                    recommendations.append(f"Reduce {age_group} players (excess: {-gap:.1%})")
-        
-        # Phase balance recommendations
-        for phase, gap in analysis['phase_analysis']['gaps'].items():
-            if abs(gap) > 0.1:  # 10% threshold
-                if gap > 0:
-                    recommendations.append(f"Need more {phase} phase players (deficit: {gap:.1%})")
-                else:
-                    recommendations.append(f"Reduce {phase} phase players (excess: {-gap:.1%})")
+                    recommendations.append(f"Reduce {age_group.replace('_', '-')} players ({gap:.0%})")
         
         return recommendations
-    def get_priority_requirements(self, analysis_results: Dict) -> List[Dict]:
-        """Get prioritized list of team requirements"""
-        priorities = []
-        gaps = analysis_results['balance_gaps']
+
+    def _setup_logging(self):
+        log_dir = Path('logs')
+        log_dir.mkdir(parents=True, exist_ok=True)
         
-        # Combine and prioritize gaps
-        for category in ['age_groups', 'career_phases']:
-            for group, gap in gaps[category].items():
-                if abs(gap) > 0.1:  # 10% threshold
-                    priorities.append({
-                        'category': category,
-                        'group': group,
-                        'gap': gap,
-                        'priority': 'High' if abs(gap) > 0.2 else 'Medium'
-                    })
-        
-        # Sort by absolute gap size
-        priorities.sort(key=lambda x: abs(x['gap']), reverse=True)
-        return priorities
+        logging.basicConfig(
+            filename=log_dir / 'team_balance.log',
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+        self.logger = logging.getLogger(__name__)
 
     def _extract_age(self, age_string: str) -> int:
-        """Extract age from the scraped age string format"""
+        """Extract age from various string formats"""
         try:
-            # Handle different age string formats
             if not age_string:
                 return 0
             
-            # Format: "Feb 5, 1985 (39)" -> extract 39
-            if '(' in age_string:
+            # Handle "(age)" format
+            if '(' in str(age_string):
                 age = age_string.split('(')[1].replace(')', '')
                 return int(age)
             
-            # If it's already a number
+            # Handle direct number
             if str(age_string).isdigit():
                 return int(age_string)
             
@@ -248,3 +210,14 @@ class TeamBalanceOptimizer:
         except Exception as e:
             self.logger.error(f"Error extracting age from {age_string}: {str(e)}")
             return 0
+
+    def _evaluate_squad_size(self, total_players: int) -> str:
+        """Evaluate if squad size is optimal"""
+        if total_players < self.ideal_composition['squad_size']['min']:
+            return 'understaffed'
+        elif total_players > self.ideal_composition['squad_size']['max']:
+            return 'overstaffed'
+        elif total_players == self.ideal_composition['squad_size']['optimal']:
+            return 'optimal'
+        else:
+            return 'acceptable'

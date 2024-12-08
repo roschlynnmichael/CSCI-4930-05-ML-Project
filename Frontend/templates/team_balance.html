@@ -2,28 +2,118 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Team Balance Analysis</h1>
-        <button id="analyzeTeam" 
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Analyze Team
-        </button>
+    <!-- Top section with search and selected players -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold mb-6">Team Balance Analysis</h1>
+        
+        <div class="grid grid-cols-2 gap-6">
+            <!-- Left column: Search section -->
+            <div>
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold mb-2">Search Players</h2>
+                    <div class="relative">
+                        <input type="text" 
+                               id="playerSearch" 
+                               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Search for players...">
+                        <div id="playerResults" 
+                             class="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-96 overflow-y-auto">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right column: Selected players -->
+            <div>
+                <h2 class="text-xl font-bold mb-2">Selected Players</h2>
+                <div id="selectedPlayers" class="space-y-2 mb-4">
+                </div>
+                <button id="analyzeTeam" 
+                        class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Analyze Team Balance
+                </button>
+            </div>
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-            <h2 class="text-xl font-bold mb-4">Selected Players</h2>
-            <div id="selectedPlayers" class="space-y-2">
-                <!-- Selected players will be added here -->
+    <!-- Analysis Results Section -->
+    <div id="analysisResults" class="space-y-6">
+        <!-- Squad Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass-card p-6">
+                <h3 class="text-lg font-bold mb-4">Squad Metrics</h3>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Average Age</p>
+                        <p id="averageAge" class="text-2xl font-bold text-indigo-600">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Squad Size</p>
+                        <p id="squadSize" class="text-2xl font-bold text-indigo-600">-</p>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div>
-            <h2 class="text-xl font-bold mb-4">Analysis Results</h2>
-            <div id="analysisResults" class="space-y-4">
-                <!-- Analysis results will be displayed here -->
+            <!-- Balance Scores -->
+            <div class="glass-card p-6">
+                <h3 class="text-lg font-bold mb-4">Balance Scores</h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm text-gray-600">Overall Balance</span>
+                            <span id="overallBalanceScore" class="text-sm font-medium text-indigo-600">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="overallBalanceBar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm text-gray-600">Age Balance</span>
+                            <span id="ageBalanceScore" class="text-sm font-medium text-indigo-600">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="ageBalanceBar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm text-gray-600">Phase Balance</span>
+                            <span id="phaseBalanceScore" class="text-sm font-medium text-indigo-600">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="phaseBalanceBar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Distribution Charts -->
+            <div class="glass-card p-6 col-span-2">
+                <h3 class="text-lg font-bold mb-4">Age Distribution</h3>
+                <canvas id="ageDistributionChart"></canvas>
+            </div>
+
+            <div class="glass-card p-6 col-span-2">
+                <h3 class="text-lg font-bold mb-4">Career Phase Distribution</h3>
+                <canvas id="phaseDistributionChart"></canvas>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="glass-card p-6 col-span-2">
+                <h3 class="text-lg font-bold mb-4">Recommendations</h3>
+                <div id="recommendations" class="space-y-2">
+                </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg shadow-xl">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+        <p class="mt-4 text-center">Analyzing team balance...</p>
     </div>
 </div>
 {% endblock %}

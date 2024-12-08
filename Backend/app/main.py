@@ -4,7 +4,9 @@ from bs4 import BeautifulSoup
 from fastapi.middleware.cors import CORSMiddleware
 from app.data.player_service import PlayerService
 from app.model.team_balance import TeamBalanceOptimizer
+from .parallel_scrapper import ParallelPlayerScraper
 from app.scraper import PlayerScraper
+from .team_balance_service import TeamBalanceService
 from typing import Dict, List
 import pandas as pd
 import json
@@ -29,6 +31,8 @@ app.add_middleware(
 player_service = PlayerService()
 team_balance_optimizer = TeamBalanceOptimizer()
 scraper = PlayerScraper()
+team_balance_service = TeamBalanceService()
+parallel_scraper = ParallelPlayerScraper()
 
 @app.get("/api/search-player")
 async def search_player(name: str):
@@ -76,17 +80,71 @@ async def general_exception_handler(request, exc):
 # Keep your existing routes below this line
 # ... (your other routes for team analysis, etc.)
 
+@app.post("/api/team-balance/save")
+async def save_team_balance(team_name: str, player_ids: List[str]):
+    """Save a team composition for balance analysis"""
+    logger.info(f"Saving team balance for team: {team_name}")
+    try:
+        success = team_balance_service.save_team(team_name, player_ids)
+        if success:
+            return {"message": "Team saved successfully"}
+        raise HTTPException(status_code=500, detail="Failed to save team")
+    except Exception as e:
+        logger.error(f"Error saving team balance: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/team-balance/saved")
+async def get_saved_teams():
+    """Get list of all saved team compositions"""
+    logger.info("Retrieving saved teams")
+    try:
+        return team_balance_service.list_saved_teams()
+    except Exception as e:
+        logger.error(f"Error retrieving saved teams: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/team-balance/team/{team_name}")
+async def get_saved_team(team_name: str):
+    """Get a specific saved team's composition"""
+    logger.info(f"Retrieving team: {team_name}")
+    try:
+        team_data = team_balance_service.get_saved_team(team_name)
+        if team_data:
+            return team_data
+        raise HTTPException(status_code=404, detail="Team not found")
+    except Exception as e:
+        logger.error(f"Error retrieving team {team_name}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/team-balance/team/{team_name}")
+async def delete_saved_team(team_name: str):
+    """Delete a saved team composition"""
+    logger.info(f"Deleting team: {team_name}")
+    try:
+        success = team_balance_service.delete_saved_team(team_name)
+        if success:
+            return {"message": "Team deleted successfully"}
+        raise HTTPException(status_code=404, detail="Team not found")
+    except Exception as e:
+        logger.error(f"Error deleting team {team_name}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Update your existing analyze_team_balance route to use the team balance service
 @app.post("/api/analyze-team-balance")
 async def analyze_team_balance(squad: List[dict]):
+    """Analyze team balance based on provided player data"""
     try:
+        logger.info(f"Analyzing team balance for {len(squad)} players")
+        
+        # Save player data to team balance service
+        for player in squad:
+            team_balance_service.add_player(player)
+        
         # Convert squad list to pandas DataFrame
         df = pd.DataFrame(squad)
         
-        # Initialize optimizer
-        optimizer = TeamBalanceOptimizer()
-        
         # Get analysis
-        analysis = optimizer.analyze_squad_balance(df)
+        analysis = team_balance_optimizer.analyze_squad_balance(df)
         
         # Convert numpy values to Python native types
         analysis = json.loads(json.dumps(analysis, default=lambda x: float(x) if isinstance(x, np.floating) else x))
@@ -210,4 +268,15 @@ def get_player_details(self, player_id: str):
         raise HTTPException(status_code=503, detail="Unable to fetch player data")
     except Exception as e:
         logger.error(f"Error processing player {player_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/parallel/players")
+async def get_players_parallel(player_ids: List[str]):
+    """Get detailed information for multiple players in parallel"""
+    try:
+        results = await parallel_scraper.scrape_players_parallel(player_ids)
+        await parallel_scraper.close()
+        return results
+    except Exception as e:
+        logger.error(f"Error in parallel player scraping: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

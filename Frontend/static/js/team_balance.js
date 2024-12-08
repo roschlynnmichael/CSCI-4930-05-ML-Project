@@ -1,10 +1,12 @@
 // Team Balance Analyzer JavaScript
 
 const BACKEND_URL = 'http://127.0.0.1:8000';
+const DEFAULT_PLAYER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItdXNlciI+PHBhdGggZD0iTTIwIDIxdi0yYTQgNCAwIDAgMC00LTRINGE0IDQgMCAwIDAtNCA0djIiPjwvcGF0aD48Y2lyY2xlIGN4PSIxMiIgY3k9IjciIHI9IjQiPjwvY2lyY2xlPjwvc3ZnPg==';
 
 let selectedPlayers = [];
 let ageChart = null;
 let phaseChart = null;
+let scrapingProgress = new Map();
 
 document.addEventListener('DOMContentLoaded', function() {
     const playerSearch = document.getElementById('playerSearch');
@@ -15,6 +17,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Analyze team button
     analyzeButton.addEventListener('click', analyzeTeam);
+
+    // Add click outside handler
+    document.addEventListener('click', function(event) {
+        const searchResults = document.getElementById('playerResults');
+        const searchInput = document.getElementById('playerSearch');
+        
+        if (!searchResults.contains(event.target) && !searchInput.contains(event.target)) {
+            searchResults.innerHTML = '';
+        }
+    });
 });
 
 function debounce(func, wait) {
@@ -45,40 +57,106 @@ async function searchPlayers(event) {
 function displaySearchResults(results) {
     const resultsDiv = document.getElementById('playerResults');
     resultsDiv.innerHTML = '';
-
+    
     results.forEach(player => {
         const playerDiv = document.createElement('div');
-        playerDiv.className = 'glass-card p-3 hover:scale-[1.02] transition-all duration-300';
+        playerDiv.className = 'p-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-3';
+        
+        const imageUrl = player.image_url || DEFAULT_PLAYER_IMAGE;
+        
         playerDiv.innerHTML = `
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <img src="${player.image_url}" class="w-10 h-10 rounded-full object-cover" alt="${player.name}">
-                    <span class="font-medium text-gray-800">${player.name}</span>
-                </div>
-                <button onclick="addPlayer('${player.id}')" 
-                        class="px-3 py-1 bg-gradient-to-r from-indigo-600 to-emerald-600 text-white rounded-lg hover:from-indigo-700 hover:to-emerald-700 transition-all duration-300">
-                    Add
-                </button>
-            </div>
+            <img src="${imageUrl}" 
+                 class="w-8 h-8 rounded-full object-cover bg-gray-100" 
+                 alt="${player.name}"
+                 onerror="this.src='${DEFAULT_PLAYER_IMAGE}'">
+            <span>${player.name}</span>
         `;
+        
+        playerDiv.onclick = () => addPlayer(player.id, player.name, player.image_url);
         resultsDiv.appendChild(playerDiv);
     });
 }
 
-async function addPlayer(playerId) {
+async function addPlayer(playerId, playerName, imageUrl) {
     try {
+        // Hide search results
+        document.getElementById('playerResults').innerHTML = '';
+        document.getElementById('playerSearch').value = '';
+        
+        // Check if player already exists
+        if (selectedPlayers.find(p => p.id === playerId)) {
+            return;
+        }
+
+        // Create progress element first
+        const playerDiv = document.createElement('div');
+        playerDiv.id = `player-loading-${playerId}`;
+        playerDiv.className = 'glass-card p-3 mb-2';
+        playerDiv.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <img src="${imageUrl || DEFAULT_PLAYER_IMAGE}" 
+                         class="w-10 h-10 rounded-full object-cover bg-gray-100 animate-pulse" 
+                         alt="${playerName}">
+                    <span class="font-medium text-gray-800">${playerName}</span>
+                </div>
+                <div class="w-24">
+                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div id="progress-${playerId}" 
+                             class="h-full bg-gradient-to-r from-indigo-600 to-emerald-600 transition-all duration-300" 
+                             style="width: 0%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('selectedPlayers').appendChild(playerDiv);
+
+        // Start progress updates
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress = Math.min(progress + 5, 90);
+            updateProgress(playerId, progress);
+        }, 100);
+
+        // Fetch player data
         const response = await fetch(`${BACKEND_URL}/api/player/${playerId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const playerData = await response.json();
         
-        console.log('Player info object:', playerData.info);
-        console.log('Date of birth/age:', playerData.info?.['date_of_birth/age']);
-        
-        if (!selectedPlayers.find(p => p.id === playerData.id)) {
-            selectedPlayers.push(playerData);
+        // Clear interval and set progress to 100%
+        clearInterval(progressInterval);
+        updateProgress(playerId, 100);
+
+        // Add to selected players with basic info
+        selectedPlayers.push({
+            id: playerId,
+            name: playerName,
+            image_url: imageUrl || DEFAULT_PLAYER_IMAGE,
+            ...playerData
+        });
+
+        // Update display after short delay to show completion
+        setTimeout(() => {
             updateSelectedPlayersList();
-        }
+        }, 300);
+
     } catch (error) {
         console.error('Error adding player:', error);
+        const progressBar = document.getElementById(`progress-${playerId}`);
+        if (progressBar) {
+            progressBar.classList.remove('from-indigo-600', 'to-emerald-600');
+            progressBar.classList.add('bg-red-600');
+        }
+    }
+}
+
+function updateProgress(playerId, progress) {
+    const progressBar = document.getElementById(`progress-${playerId}`);
+    if (progressBar) {
+        progressBar.style.width = `${progress}%`;
     }
 }
 
@@ -88,16 +166,22 @@ function updateSelectedPlayersList() {
 
     selectedPlayers.forEach(player => {
         const playerDiv = document.createElement('div');
-        playerDiv.className = 'glass-card p-3 hover:scale-[1.02] transition-all duration-300';
+        playerDiv.className = 'glass-card p-3 mb-2';
+        
         playerDiv.innerHTML = `
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                    <img src="${player.image_url}" class="w-10 h-10 rounded-full object-cover" alt="${player.name}">
+                    <img src="${player.image_url || DEFAULT_PLAYER_IMAGE}" 
+                         class="w-10 h-10 rounded-full object-cover bg-gray-100" 
+                         alt="${player.name}"
+                         onerror="this.src='${DEFAULT_PLAYER_IMAGE}'">
                     <span class="font-medium text-gray-800">${player.name}</span>
                 </div>
                 <button onclick="removePlayer('${player.id}')" 
-                        class="px-3 py-1 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300">
-                    Remove
+                        class="text-red-500 hover:text-red-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
                 </button>
             </div>
         `;
@@ -112,35 +196,28 @@ function removePlayer(playerId) {
 
 async function analyzeTeam() {
     try {
-        const selectedPlayers = Array.from(document.querySelectorAll('#selectedPlayers .player-card'))
-            .map(card => ({
-                'Full name': card.querySelector('.player-name').textContent,
-                'Date of birth/Age': card.dataset.age || '',
-                // Add other relevant fields
-            }));
-
-        if (selectedPlayers.length === 0) {
-            alert('Please select players to analyze');
-            return;
-        }
-
-        const response = await fetch('http://127.0.0.1:8000/api/analyze-team-balance', {
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+        
+        const response = await fetch(`${BACKEND_URL}/api/analyze-team-balance`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(selectedPlayers)
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
+        
         const analysis = await response.json();
-        displayAnalysis(analysis);
+        
+        // Update the balance display
+        updateAnalysisDisplay(analysis);
+        
+        // Your existing chart updates...
+        updateCharts(analysis);
+        
     } catch (error) {
         console.error('Error analyzing team:', error);
-        alert('Error analyzing team. Please try again.');
+    } finally {
+        document.getElementById('loadingOverlay').classList.add('hidden');
     }
 }
 
@@ -151,53 +228,85 @@ function extractAgeFromString(dateString) {
     return ageMatch ? parseInt(ageMatch[1]) : null;
 }
 
-function displayAnalysis(data) {
-    if (!data || !data.analysis) {
-        console.error('Invalid analysis data received');
-        return;
-    }
-    
-    const analysis = data.analysis;
-    document.getElementById('analysisResults').style.display = 'block';
-    
-    // Extract ages from the date_of_birth/age string in info object
-    const ages = selectedPlayers.map(player => {
-        console.log('Processing player:', player.name);
-        const dobString = player.info?.['date_of_birth/age'];
-        console.log('Date of birth string found:', dobString);
-        
-        // Try to extract age from the string
-        const age = extractAgeFromString(dobString);
-        console.log('Extracted age:', age);
-        return age;
-    });
-    
-    console.log('All extracted ages:', ages);
-    
-    // Filter out any null values and calculate metrics
-    const validAges = ages.filter(age => age !== null);
-    const averageAge = validAges.length 
-        ? (validAges.reduce((a, b) => a + b, 0) / validAges.length).toFixed(1) 
-        : 0;
-    const ageSpread = validAges.length 
-        ? (Math.max(...validAges) - Math.min(...validAges)).toFixed(1) 
-        : 0;
+function updateAnalysisDisplay(analysis) {
+    // Update squad metrics
+    document.getElementById('averageAge').textContent = analysis.squad_metrics.average_age;
+    document.getElementById('squadSize').textContent = analysis.squad_metrics.total_players;
 
-    console.log('Valid ages:', validAges);
-    console.log('Average age:', averageAge);
-    console.log('Age spread:', ageSpread);
-
-    // Update the analysis with calculated age metrics
-    analysis.squad_metrics = {
-        ...analysis.squad_metrics,
-        average_age: averageAge,
-        age_spread: ageSpread
+    // Update balance scores and progress bars
+    const scores = {
+        'overall': analysis.balance_scores.overall_balance,
+        'age': analysis.balance_scores.age_balance,
+        'phase': analysis.balance_scores.phase_balance
     };
-    
-    displaySquadMetrics(analysis.squad_metrics);
-    displayBalanceScores(analysis.balance_scores);
-    displayDistributionCharts(analysis);
-    displayRecommendations(analysis.recommendations);
+
+    Object.entries(scores).forEach(([key, value]) => {
+        const percentage = Math.round(value * 100);
+        document.getElementById(`${key}BalanceScore`).textContent = `${percentage}%`;
+        document.getElementById(`${key}BalanceBar`).style.width = `${percentage}%`;
+    });
+
+    // Update recommendations
+    const recommendationsDiv = document.getElementById('recommendations');
+    recommendationsDiv.innerHTML = analysis.recommendations
+        .map(rec => `<div class="flex items-center space-x-2">
+                        <span class="text-indigo-600">•</span>
+                        <span>${rec}</span>
+                     </div>`)
+        .join('');
+
+    // Create/Update charts
+    createDistributionCharts(analysis);
+}
+
+function createDistributionCharts(analysis) {
+    // Age Distribution Chart
+    const ageCtx = document.getElementById('ageDistributionChart').getContext('2d');
+    new Chart(ageCtx, {
+        type: 'bar',
+        data: {
+            labels: ['U21', '21-25', '26-29', '30+'],
+            datasets: [{
+                label: 'Current',
+                data: Object.values(analysis.age_analysis.current),
+                backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                borderColor: 'rgb(99, 102, 241)',
+                borderWidth: 1
+            }, {
+                label: 'Ideal',
+                data: Object.values(analysis.age_analysis.ideal),
+                type: 'line',
+                borderColor: 'rgb(16, 185, 129)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: getChartOptions('Age Distribution')
+    });
+
+    // Phase Distribution Chart
+    const phaseCtx = document.getElementById('phaseDistributionChart').getContext('2d');
+    new Chart(phaseCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Breakthrough', 'Development', 'Peak', 'Twilight'],
+            datasets: [{
+                label: 'Current',
+                data: Object.values(analysis.phase_analysis.current),
+                backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                borderColor: 'rgb(99, 102, 241)',
+                borderWidth: 1
+            }, {
+                label: 'Ideal',
+                data: Object.values(analysis.phase_analysis.ideal),
+                type: 'line',
+                borderColor: 'rgb(16, 185, 129)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: getChartOptions('Career Phase Distribution')
+    });
 }
 
 // Add event listener to analyze button
@@ -277,3 +386,114 @@ function getChartOptions(title) {
     };
 }
 
+// Add this function to handle parallel scraping
+async function addPlayersParallel(playerIds) {
+    try {
+        // Create progress elements for all players first
+        playerIds.forEach(playerId => {
+            const playerDiv = document.createElement('div');
+            playerDiv.className = 'glass-card p-3 mb-2';
+            playerDiv.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+                        <span class="font-medium text-gray-800">Loading...</span>
+                    </div>
+                    <div class="w-24">
+                        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div id="progress-${playerId}" 
+                                 class="h-full bg-gradient-to-r from-indigo-600 to-emerald-600 transition-all duration-300" 
+                                 style="width: 0%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('selectedPlayers').appendChild(playerDiv);
+        });
+
+        // Start parallel scraping
+        const response = await fetch(`${BACKEND_URL}/api/parallel/players`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(playerIds)
+        });
+
+        const results = await response.json();
+
+        // Process results and update UI
+        Object.entries(results).forEach(([playerId, playerData]) => {
+            const progressBar = document.getElementById(`progress-${playerId}`);
+            if (playerData.status === 'success') {
+                progressBar.style.width = '100%';
+                if (!selectedPlayers.find(p => p.id === playerId)) {
+                    selectedPlayers.push(playerData);
+                }
+            } else {
+                progressBar.classList.remove('from-indigo-600', 'to-emerald-600');
+                progressBar.classList.add('bg-red-600');
+            }
+        });
+
+        updateSelectedPlayersList();
+
+    } catch (error) {
+        console.error('Error in parallel scraping:', error);
+        playerIds.forEach(playerId => {
+            const progressBar = document.getElementById(`progress-${playerId}`);
+            if (progressBar) {
+                progressBar.classList.remove('from-indigo-600', 'to-emerald-600');
+                progressBar.classList.add('bg-red-600');
+            }
+        });
+    }
+}
+
+// Add local storage functions
+function savePlayerData(playerData) {
+    const storedData = localStorage.getItem('selectedPlayersData') || '{}';
+    const allPlayerData = JSON.parse(storedData);
+    allPlayerData[playerData.id] = playerData;
+    localStorage.setItem('selectedPlayersData', JSON.stringify(allPlayerData));
+}
+
+function loadStoredPlayerData() {
+    const storedData = localStorage.getItem('selectedPlayersData');
+    return storedData ? JSON.parse(storedData) : {};
+}
+
+function updateBalanceDisplay(analysis) {
+    // Update overall balance score
+    const overallScore = Math.round(analysis.balance_scores.overall_balance * 100);
+    const circumference = 2 * Math.PI * 32; // r=32
+    const offset = circumference - (analysis.balance_scores.overall_balance * circumference);
+    
+    const circle = document.getElementById('overallBalanceCircle');
+    const text = document.getElementById('overallBalanceText');
+    
+    circle.style.strokeDasharray = `${circumference} ${circumference}`;
+    circle.style.strokeDashoffset = offset;
+    text.textContent = `${overallScore}%`;
+
+    // Update age distribution percentages
+    const ageDistribution = analysis.age_analysis.current;
+    document.getElementById('u21Percentage').textContent = `${Math.round(ageDistribution.u21 * 100)}%`;
+    document.getElementById('age21_25Percentage').textContent = `${Math.round(ageDistribution['21_25'] * 100)}%`;
+    document.getElementById('age26_29Percentage').textContent = `${Math.round(ageDistribution['26_29'] * 100)}%`;
+    document.getElementById('age30PlusPercentage').textContent = `${Math.round(ageDistribution['30_plus'] * 100)}%`;
+
+    // Update career phase percentages
+    const phaseDistribution = analysis.phase_analysis.current;
+    document.getElementById('breakthroughPercentage').textContent = `${Math.round(phaseDistribution.breakthrough * 100)}%`;
+    document.getElementById('developmentPercentage').textContent = `${Math.round(phaseDistribution.development * 100)}%`;
+    document.getElementById('peakPercentage').textContent = `${Math.round(phaseDistribution.peak * 100)}%`;
+    document.getElementById('twilightPercentage').textContent = `${Math.round(phaseDistribution.twilight * 100)}%`;
+
+    // Update recommendations
+    const recommendationsDiv = document.getElementById('balanceRecommendations');
+    recommendationsDiv.innerHTML = analysis.recommendations
+        .map(rec => `<div class="mb-1">• ${rec}</div>`)
+        .join('');
+}
