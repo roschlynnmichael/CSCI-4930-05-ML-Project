@@ -192,3 +192,22 @@
     align-items: center;
     z-index: 50;
 }
+
+/* Stat card styles */
+.stat-card {
+    background-color: #F9FAFB;  /* gray-50 */
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.stat-card h3 {
+    font-size: 0.875rem;  /* text-sm */
+    font-weight: 500;     /* font-medium */
+    color: #6B7280;       /* text-gray-500 */
+}
+
+.stat-card p {
+    font-size: 1.125rem;  /* text-lg */
+    font-weight: 600;     /* font-semibold */
+    margin-top: 0.25rem;
+}

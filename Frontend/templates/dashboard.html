@@ -33,6 +33,21 @@
             </div>
             
             <!-- Add more cards as needed -->
+            <div class="bg-indigo-50 p-6 rounded-lg">
+                <lottie-player
+                    src="{{ url_for('static', filename='animations/search.json') }}"
+                    background="transparent"
+                    speed="1"
+                    style="width: 48px; height: 48px;"
+                    loop
+                    autoplay>
+                </lottie-player>
+                <h3 class="text-xl font-semibold mt-4">Player Database</h3>
+                <p class="text-gray-600 mt-2">Search and analyze players</p>
+                <a href="{{ url_for('player_database') }}" class="btn-primary mt-4">
+                    Open Database
+                </a>
+            </div>
         </div>
     </div>
 </div>

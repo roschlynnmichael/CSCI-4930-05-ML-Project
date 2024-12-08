@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Player Database{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-12">
+    <!-- Search Section -->
+    <div class="mb-8">
+        <div class="flex flex-col md:flex-row gap-4 items-end">
+            <div class="flex-1">
+                <label for="playerSearch" class="block text-sm font-medium text-gray-700 mb-1">
+                    Search Players
+                </label>
+                <input type="text" 
+                       id="playerSearch" 
+                       class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                       placeholder="Enter player name...">
+            </div>
+            <button id="searchButton" class="btn-primary">
+                Search
+            </button>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div id="searchResults" class="hidden mb-8">
+        <h3 class="text-lg font-semibold mb-4">Search Results</h3>
+        <div id="playersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Results will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="hidden">
+        <div class="flex justify-center items-center py-12">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Player Details Card -->
+    <div id="playerCard" class="hidden">
+        <!-- Player details will be shown here -->
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="hidden">
+        <div class="text-center py-12">
+            <p id="errorMessage" class="text-red-600"></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/player_database.js') }}"></script>
+{% endblock %}

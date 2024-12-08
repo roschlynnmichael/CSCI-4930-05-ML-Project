@@ -1,108 +1,61 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional, Dict
-import pandas as pd
-from pathlib import Path
-from app.model.roster_analyzer import RosterAnalyzer, FeatureEngineering
-from app.data.data_collector import DataCollector
-from app.data.data_integrator import DataIntegrator
-from app.model.performance_predictor import PerformancePredictor
+from fastapi.middleware.cors import CORSMiddleware
+from app.data.player_service import PlayerService
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Initialize components
-analyzer = RosterAnalyzer()
-collector = DataCollector(use_mock_data=False)  # Set to False for real API data
-integrator = DataIntegrator()
-predictor = PerformancePredictor()
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class Player(BaseModel):
-    Name: str
-    Age: float
-    Career_Minutes: float
-    Career_Games: float
-    Career_Goals: float
-    Career_Assists: float
-    Career_Yellows: float
-    Career_Reds: float
-    Current_Value: float
-    Peak_Value: float
-    Squad_Size: int
+player_service = PlayerService()
 
-class TeamAnalysis(BaseModel):
-    team_name: str
-    players: List[Player]
-
-class PlayerIds(BaseModel):
-    transfermarkt: str
-    fbref: str
-
-@app.post("/analyze-team")
-async def analyze_team(team: TeamAnalysis):
+@app.get("/api/search-player")
+async def search_player(name: str):
+    """Search for players by name"""
+    logger.info(f"Searching for player: {name}")
     try:
-        # Convert input data to DataFrame
-        team_data = pd.DataFrame([player.dict() for player in team.players])
-        
-        # Analyze team using your model
-        results = analyzer.analyze_team(team_data)
-        
-        # Convert results to dictionary for JSON response
-        analysis_results = {
-            "team_name": team.team_name,
-            "analysis": results.to_dict(orient='records'),
-            "phase_distribution": results['Career_Phase'].value_counts().to_dict()
-        }
-        
-        return analysis_results
-    
+        results = await player_service.search_player(name)
+        if not results:
+            raise HTTPException(status_code=404, detail="No players found")
+        return results
     except Exception as e:
+        logger.error(f"Error in search_player: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/player/{transfermarkt_id}")
-async def get_player_data(transfermarkt_id: str, fbref_id: str):
-    """Get integrated player data from multiple sources"""
+@app.get("/api/player/{player_id}")
+async def get_player_details(player_id: str):
+    """Get detailed information for a specific player"""
+    logger.info(f"Getting details for player ID: {player_id}")
     try:
-        player_ids = {
-            'transfermarkt': transfermarkt_id,
-            'fbref': fbref_id
-        }
-        
-        integrated_data = await integrator.get_integrated_player_data(player_ids)
-        return integrated_data
-        
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        details = await player_service.get_player_details(player_id)
+        if not details:
+            raise HTTPException(status_code=404, detail="Player not found")
+        return details
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/predict-performance")
-async def predict_performance(player: Player):
-    """Predict player's future performance"""
-    try:
-        # Convert player data to DataFrame
-        player_data = pd.DataFrame([player.dict()])
-        
-        # Get performance predictions
-        predictions = predictor.predict_performance(player_data)
-        return predictions
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/player-stats/{player_id}")
-async def get_player_stats(player_id: str, source: str):
-    """Get player statistics from a specific source"""
-    try:
-        data = await collector.get_player_data(player_id, source)
-        if not data:
-            raise HTTPException(status_code=404, detail=f"Player not found in {source}")
-        return data
-        
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+        logger.error(f"Error in get_player_details: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
 async def health_check():
+    """Health check endpoint"""
     return {"status": "healthy"}
+
+# Error handling
+@app.exception_handler(Exception)
+async def general_exception_handler(request, exc):
+    logger.error(f"Unhandled exception: {str(exc)}")
+    return {"detail": "Internal server error"}, 500
+
+# Keep your existing routes below this line
+# ... (your other routes for team analysis, etc.)

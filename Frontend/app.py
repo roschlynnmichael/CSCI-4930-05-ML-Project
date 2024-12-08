@@ -1,9 +1,11 @@
 import os
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from extensions import db, login_manager
 from models.user import User
 from config import Config
+import requests
+import logging
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, 'frontend')
@@ -92,6 +94,66 @@ def about():
 @login_required
 def dashboard():
     return render_template('dashboard.html')
+
+@app.route('/player-database')
+@login_required
+def player_database():
+    return render_template('player_database.html')
+
+@app.route('/api/search-player')
+@login_required
+def search_player():
+    """Proxy endpoint for player search"""
+    try:
+        name = request.args.get('name')
+        if not name:
+            return jsonify({'error': 'Name parameter is required'}), 400
+
+        # Forward the request to FastAPI backend
+        response = requests.get(
+            f'http://localhost:8000/api/search-player',
+            params={'name': name}
+        )
+        
+        # Log the response for debugging
+        print(f"FastAPI response status: {response.status_code}")
+        print(f"FastAPI response content: {response.text}")
+        
+        return response.json(), response.status_code
+        
+    except requests.RequestException as e:
+        print(f"Error forwarding request: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/player/<player_id>')
+@login_required
+def get_player_details(player_id):
+    """Proxy endpoint for player details"""
+    try:
+        response = requests.get(f'http://localhost:8000/api/player/{player_id}')
+        return response.json(), response.status_code
+        
+    except requests.RequestException as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/player-stats/<player_id>', methods=['GET'])
+@login_required
+def get_player_stats(player_id):
+    source = request.args.get('source')
+    
+    if not source:
+        return jsonify({'error': 'Missing source parameter'}), 400
+        
+    try:
+        # Forward the request to the FastAPI backend
+        response = requests.get(
+            f'http://localhost:8000/player-stats/{player_id}',
+            params={'source': source}
+        )
+        return response.json(), response.status_code
+        
+    except requests.RequestException as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context():
